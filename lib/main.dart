@@ -3,5 +3,5 @@ import 'package:hci_project/SettingScreen.dart';
 import 'HomeScreen.dart';
 
 void main() {
-  runApp(const HomeScreen());
+  runApp(const SettingScreen());
 }
