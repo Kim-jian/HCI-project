@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
@@ -24,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String? selectedSorting = '업로드 순'; // 초기 정렬 방법 설정
   String? selectedSpeaker = 'Steve Jobs'; // 초기 선택 값 설정(템플릿)
   int playbackTime = 3; //초기 재생 시간 설정
-  final List<int> playbackTimeOptions = [2, 3, 4, 5]; // 가능한 재생 시간 목록
+  final List<int> playbackTimeOptions = [1,2, 3, 4, 5,6,7]; // 가능한 재생 시간 목록
 
   // 사용자가 선택할 수 있는 연설자 목록
   final List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
@@ -235,36 +236,27 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("보이스 경고 시간 설정"),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Text("녹음 재생 시간을 선택하세요:"),
-                  const SizedBox(height: 16),
-                  DropdownButton<int>(
-                    value: playbackTime,
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        playbackTime = newValue ?? playbackTime;
-                      });
-                    },
-                    items: <int>[2, 3, 4, 5].map<DropdownMenuItem<int>>((int value) {
-                      return DropdownMenuItem<int>(
-                        value: value,
-                        child: Text("$value 초"),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              );
-            },
+          content: Container(
+            height: 100,  // Picker의 높이 설정
+            child: CupertinoPicker(
+              itemExtent: 32.0,  // 각 항목의 높이
+              onSelectedItemChanged: (int index) {
+                // 실제 값으로 playbackTime 설정
+                playbackTime = playbackTimeOptions[index];
+                setState(() {}); // State 업데이트
+              },
+              looping: true,
+              children: List<Widget>.generate(playbackTimeOptions.length, (int index) {
+                // 순환되지 않고 올바르게 모든 시간 옵션 표시
+                return Center(child: Text('${playbackTimeOptions[index]} 초'));
+              }),  // 무한 스크롤 활성화
+            ),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text("확인"),
               onPressed: () {
-                setState(() {}); // 외부의 subtitle 업데이트
+                setState(() {});  // 외부의 subtitle 업데이트
                 Navigator.of(context).pop();
               },
             ),
