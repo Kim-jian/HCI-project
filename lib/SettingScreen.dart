@@ -26,12 +26,12 @@ class _SettingsPageState extends State<SettingsPage> {
   String? selectedSpeaker = 'Steve Jobs'; // 초기 선택 값 설정(템플릿)
   int playbackTime = 3; //초기 재생 시간 설정
   final List<int> playbackTimeOptions = [1,2, 3, 4, 5,6,7]; // 가능한 재생 시간 목록
+  String transcriptDisplayOption = '키워드';// 초기 대본 표시 옵션
+
 
   // 사용자가 선택할 수 있는 연설자 목록
   final List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
 
-  // 사용 가능한 정렬 방법 목록
-  final List<String> sortingMethods = ['업로드 순', '최근 수정 일자 순'];
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +73,9 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               ListTile(
                 title: const Text('대본 표시 설정'),
+                subtitle: Text('현재 선택: $transcriptDisplayOption'),
                 onTap: () {
-                  // 설정 액션을 여기에 추가하세요
+                  _showTranscriptDisplayOptionsDialog(context);
                 },
               ),
               ListTile(
@@ -88,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('구글 계정 연동'),
             leading: const Icon(Icons.account_circle),
             onTap: () {
-              // 설정 액션을 여기에 추가하세요
+              //구글 드라이브 연동 기능 구현
             },
           ),
         ],
@@ -132,25 +133,36 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("정렬 방법 고르기"),
-          content: DropdownButton<String>(
-            isExpanded: true,
-            value: selectedSorting,
-            items: sortingMethods.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
+            return AlertDialog(
+              title: const Text("정렬 방법 고르기"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  RadioListTile<String>(
+                    title: const Text('업로드 순'),
+                    value: '업로드 순',
+                    groupValue: selectedSorting,
+                    onChanged: (String? value){
+                      setState((){
+                        selectedSorting = value!;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  ),
+            RadioListTile<String>(
+            title: const Text('최근 수정 일자 순'),
+            value: '최근 수정 일자 순',
+            groupValue: selectedSorting,
+            onChanged: (String? value){
               setState(() {
-                selectedSorting = newValue;
+                selectedSorting = value!;
               });
-              Navigator.of(context).pop(); // 다이얼로그 닫기
+              Navigator.of(context).pop();
             },
-          ),
-        );
+            ),
+                ],
+              ),
+            );
       },
     );
   }
@@ -266,4 +278,44 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+
+
+  void _showTranscriptDisplayOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("대본 표시 설정"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              RadioListTile<String>(
+                title: const Text('키워드'),
+                value: '키워드',
+                groupValue: transcriptDisplayOption,
+                onChanged: (String? value) {
+                  setState(() {
+                    transcriptDisplayOption = value!;
+                  });
+                  Navigator.of(context).pop();
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('문장 별'),
+                value: '문장 별',
+                groupValue: transcriptDisplayOption,
+                onChanged: (String? value) {
+                  setState(() {
+                    transcriptDisplayOption = value!;
+                  });
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+
