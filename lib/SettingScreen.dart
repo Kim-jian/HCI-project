@@ -216,7 +216,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 isRecording = false; // 녹음 중지 상태
                                 showPlaybackOptions = true; // 재생 옵션 표시
                                 //여기서 녹음 중지해야함.
-                                controller.updateAverageDB(_soundRecorder.stopRecordingAndGetAverageDb());
+                                _soundRecorder.stopRecording();
+                                controller.updateAverageDB(_soundRecorder.getAverageDb());
                               });
                             },
                             child: const Text("녹음 중지"),
