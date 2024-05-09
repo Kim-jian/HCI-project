@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:provider/provider.dart';
+import 'SoundRecorder.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
@@ -29,9 +30,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
+  final SoundRecorder _soundRecorder = SoundRecorder();
   final List<int> playbackTimeOptions = [1,2, 3, 4, 5,6,7]; // 가능한 재생 시간 목록
-
-
   // 사용자가 선택할 수 있는 연설자 목록
   final List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
 
@@ -53,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     title: const Text('보이스 톤 설정'),
                     onTap: () {
-                      _showRecordingDialog(context);
+                      _showRecordingDialog(context,controller);
                     },
                   ),
                   ListTile(
@@ -179,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-  void _showRecordingDialog(BuildContext context) {
+  void _showRecordingDialog(BuildContext context,SettingEnvironmentController controller) {
     bool isRecording = false;
     bool showPlaybackOptions = false;
 
@@ -203,8 +203,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             onPressed: () {
                               setState(() {
                                 isRecording = true; // 녹음 시작 상태
-                                //여기서 녹음 기능을 켜야함.
                               });
+                              _soundRecorder.initRecorder();
+                              _soundRecorder.startRecording();
                             },
                             child: const Text("녹음 시작"),
                           )
@@ -215,6 +216,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 isRecording = false; // 녹음 중지 상태
                                 showPlaybackOptions = true; // 재생 옵션 표시
                                 //여기서 녹음 중지해야함.
+                                controller.updateAverageDB(_soundRecorder.stopRecordingAndGetAverageDb());
                               });
                             },
                             child: const Text("녹음 중지"),
@@ -229,6 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ElevatedButton(
                           onPressed: () {
                             // 실제 녹음 재생 기능을 추가해야 함
+                            _soundRecorder.playRecordedFile();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text("녹음된 음성이 재생되었습니다.")),
                             );
@@ -241,6 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               showPlaybackOptions = false; // 재생 옵션을 숨김
                               isRecording = true; // 바로 녹음 시작 상태로 전환
                             });
+                            _soundRecorder.startRecording();
                           },
                           child: const Text("다시 녹음하기"),
                         ),

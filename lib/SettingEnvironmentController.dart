@@ -11,17 +11,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SettingEnvironmentController extends ChangeNotifier {
+
   String _selectedSorting = '업로드 순';
   String _selectedSpeaker = 'None';
   int _playbackTime = 1;
   String _transcriptDisplayOption = '키워드';
-  double _averageDB = 0.0;
+  Future<double> _averageDB=Future.value(0.0);
 
   String get selectedSorting => _selectedSorting;
   String get selectedSpeaker => _selectedSpeaker;
   int get playbackTime => _playbackTime;
   String get transcriptDisplayOption => _transcriptDisplayOption;
-  double get averageDB => _averageDB;
+  Future<double> get averageDB => _averageDB;
 
   void updateSelectedSorting(String newValue) {
     _selectedSorting = newValue;
@@ -43,7 +44,7 @@ class SettingEnvironmentController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateAverageDB(double newDB){
+  void updateAverageDB(Future<double> newDB){
     _averageDB = newDB;
     notifyListeners();
   }
