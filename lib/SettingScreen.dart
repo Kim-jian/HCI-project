@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hci_project/SettingEnvironmentController.dart';
+import 'package:provider/provider.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Settings Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    //현재 Setting 환경 변수 값 읽어오기
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SettingEnvironmentController()),
+      ],
+      child: MaterialApp(
+        title: 'Settings Example',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: SettingsPage(),
       ),
-      home: SettingsPage(),
     );
   }
 }
@@ -22,11 +28,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String? selectedSorting = '업로드 순'; // 초기 정렬 방법 설정
-  String? selectedSpeaker = 'Steve Jobs'; // 초기 선택 값 설정(템플릿)
-  int playbackTime = 3; //초기 재생 시간 설정
+
   final List<int> playbackTimeOptions = [1,2, 3, 4, 5,6,7]; // 가능한 재생 시간 목록
-  String transcriptDisplayOption = '키워드';// 초기 대본 표시 옵션
 
 
   // 사용자가 선택할 수 있는 연설자 목록
@@ -35,77 +38,89 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings Example'),
-      ),
-      body: ListView(
-        children: <Widget>[
-          ExpansionTile(
-            title: const Text('음성'),
-            leading: const Icon(Icons.record_voice_over),
+    return Consumer<SettingEnvironmentController>(
+      builder: (context, controller, child){
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Settings Example'),
+          ),
+          body: ListView(
             children: <Widget>[
-              ListTile(
-                title: const Text('보이스 톤 설정'),
-                onTap: () {
-                  _showRecordingDialog(context);
-                },
+              ExpansionTile(
+                title: const Text('음성'),
+                leading: const Icon(Icons.record_voice_over),
+                children: <Widget>[
+                  ListTile(
+                    title: const Text('보이스 톤 설정'),
+                    onTap: () {
+                      _showRecordingDialog(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('음성 템플릿 선택'),
+                    subtitle: Text('현재 선택: ${controller.selectedSpeaker}'),
+                    onTap: () {
+                      _selectSpeakerDialog(context,controller);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('보이스 경고 시간 설정'),
+                    subtitle: Text('현재 선택: ${controller.playbackTime} 초'),
+                    onTap: () {
+                      showPlaybackTimeSettingDialog(context,controller);
+                    },
+                  ),
+                ],
+              ),
+              ExpansionTile(
+                title: const Text('대본'),
+                leading: const Icon(Icons.description),
+                children: <Widget>[
+                  ListTile(
+                    title: const Text('대본 표시 설정'),
+                    subtitle: Text('현재 선택: ${controller.transcriptDisplayOption}'),
+                    onTap: () {
+                      _showTranscriptDisplayOptionsDialog(context,controller);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('정렬 방법 고르기'),
+                    subtitle: Text('현재 선택: ${controller.selectedSorting}'), // 현재 선택된 정렬 방법 표시
+                    onTap:(){
+                        _showSortingDialog(context,controller);
+                    }
+                  ),
+          ]
               ),
               ListTile(
-                title: const Text('음성 템플릿 선택'),
-                subtitle: Text('현재 선택: $selectedSpeaker'),
+                title: const Text('구글 계정 연동'),
+                leading: const Icon(Icons.account_circle),
                 onTap: () {
-                  _selectSpeakerDialog(context);
-                },
-              ),
-              ListTile(
-                title: const Text('보이스 경고 시간 설정'),
-                subtitle: Text('현재 선택: $playbackTime 초'),
-                onTap: () {
-                  showPlaybackTimeSettingDialog(context);
+                  //구글 드라이브 연동 기능 구현
                 },
               ),
             ],
           ),
-          ExpansionTile(
-            title: const Text('대본'),
-            leading: const Icon(Icons.description),
-            children: <Widget>[
-              ListTile(
-                title: const Text('대본 표시 설정'),
-                subtitle: Text('현재 선택: $transcriptDisplayOption'),
-                onTap: () {
-                  _showTranscriptDisplayOptionsDialog(context);
-                },
-              ),
-              ListTile(
-                title: const Text('정렬 방법 고르기'),
-                subtitle: Text('현재 선택: $selectedSorting'), // 현재 선택된 정렬 방법 표시
-                onTap: _showSortingDialog,
-              ),
-            ],
-          ),
-          ListTile(
-            title: const Text('구글 계정 연동'),
-            leading: const Icon(Icons.account_circle),
-            onTap: () {
-              //구글 드라이브 연동 기능 구현
-            },
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
-  void _selectSpeakerDialog(BuildContext context) {
+  void _selectSpeakerDialog(BuildContext context, SettingEnvironmentController controller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        // 선택된 스피커를 찾아서 리스트의 맨 앞으로 이동시킵니다.
+        List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
+        String currentSelection = controller.selectedSpeaker ?? 'None';  // 현재 선택된 스피커를 가져오거나 기본값 설정
+        speakers.remove(currentSelection);  // 현재 선택된 스피커를 리스트에서 제거
+        speakers.insert(0, currentSelection);  // 현재 선택된 스피커를 리스트의 맨 앞에 추가
+
         return AlertDialog(
           title: const Text("음성 템플릿 선택"),
           content: DropdownButton<String>(
             isExpanded: true,
-            value: selectedSpeaker,
+            value: currentSelection,  // 현재 선택된 값을 value로 설정
             items: speakers.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -113,15 +128,10 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             }).toList(),
             onChanged: (String? newValue) {
-              setState(() {
-                // 선택된 템플릿을 맨 앞으로 이동
-                if (newValue != null && newValue != selectedSpeaker) {
-                  speakers.remove(newValue);
-                  speakers.insert(0, newValue);
-                  selectedSpeaker = newValue;
-                }
-              });
-              Navigator.of(context).pop(); // 다이얼로그 닫기
+              if (newValue != null) {
+                controller.updateSelectedSpeaker(newValue);
+                Navigator.of(context).pop();
+              }
             },
           ),
         );
@@ -129,43 +139,45 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showSortingDialog() {
+
+  void _showSortingDialog(BuildContext context, SettingEnvironmentController controller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("정렬 방법 고르기"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  RadioListTile<String>(
-                    title: const Text('업로드 순'),
-                    value: '업로드 순',
-                    groupValue: selectedSorting,
-                    onChanged: (String? value){
-                      setState((){
-                        selectedSorting = value!;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-            RadioListTile<String>(
-            title: const Text('최근 수정 일자 순'),
-            value: '최근 수정 일자 순',
-            groupValue: selectedSorting,
-            onChanged: (String? value){
-              setState(() {
-                selectedSorting = value!;
-              });
-              Navigator.of(context).pop();
-            },
-            ),
-                ],
+        return AlertDialog(
+          title: const Text("정렬 방법 고르기"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              RadioListTile<String>(
+                title: const Text('업로드 순'),
+                value: '업로드 순',
+                groupValue: controller.selectedSorting,
+                onChanged: (String? value) {
+                  if (value != null) {
+                    controller.updateSelectedSorting(value);
+                  }
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                },
               ),
-            );
+              RadioListTile<String>(
+                title: const Text('최근 수정 일자 순'),
+                value: '최근 수정 일자 순',
+                groupValue: controller.selectedSorting,
+                onChanged: (String? value) {
+                  if (value != null) {
+                    controller.updateSelectedSorting(value);
+                  }
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                },
+              ),
+            ],
+          ),
+        );
       },
     );
   }
+
 
   void _showRecordingDialog(BuildContext context) {
     bool isRecording = false;
@@ -242,33 +254,30 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-  void showPlaybackTimeSettingDialog(BuildContext context) {
+  void showPlaybackTimeSettingDialog(BuildContext context, SettingEnvironmentController controller) {
+    final List<int> playbackTimeOptions = [1, 2, 3, 4, 5, 6, 7];
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("보이스 경고 시간 설정"),
           content: Container(
-            height: 100,  // Picker의 높이 설정
+            height: 100,
             child: CupertinoPicker(
-              itemExtent: 32.0,  // 각 항목의 높이
+              itemExtent: 32.0,
               onSelectedItemChanged: (int index) {
-                // 실제 값으로 playbackTime 설정
-                playbackTime = playbackTimeOptions[index];
-                setState(() {}); // State 업데이트
+                controller.updatePlaybackTime(playbackTimeOptions[index]);
               },
               looping: true,
               children: List<Widget>.generate(playbackTimeOptions.length, (int index) {
-                // 순환되지 않고 올바르게 모든 시간 옵션 표시
                 return Center(child: Text('${playbackTimeOptions[index]} 초'));
-              }),  // 무한 스크롤 활성화
+              }),
             ),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text("확인"),
               onPressed: () {
-                setState(() {});  // 외부의 subtitle 업데이트
                 Navigator.of(context).pop();
               },
             ),
@@ -279,8 +288,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-
-  void _showTranscriptDisplayOptionsDialog(BuildContext context) {
+  void _showTranscriptDisplayOptionsDialog(BuildContext context, SettingEnvironmentController controller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -292,23 +300,23 @@ class _SettingsPageState extends State<SettingsPage> {
               RadioListTile<String>(
                 title: const Text('키워드'),
                 value: '키워드',
-                groupValue: transcriptDisplayOption,
+                groupValue: controller.transcriptDisplayOption,
                 onChanged: (String? value) {
-                  setState(() {
-                    transcriptDisplayOption = value!;
-                  });
-                  Navigator.of(context).pop();
+                  if (value != null) {
+                    controller.updateTranscriptDisplayOption(value);
+                  }
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
                 },
               ),
               RadioListTile<String>(
                 title: const Text('문장 별'),
                 value: '문장 별',
-                groupValue: transcriptDisplayOption,
+                groupValue: controller.transcriptDisplayOption,
                 onChanged: (String? value) {
-                  setState(() {
-                    transcriptDisplayOption = value!;
-                  });
-                  Navigator.of(context).pop();
+                  if (value != null) {
+                    controller.updateTranscriptDisplayOption(value);
+                  }
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
                 },
               ),
             ],
@@ -317,5 +325,6 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
+
 }
 
