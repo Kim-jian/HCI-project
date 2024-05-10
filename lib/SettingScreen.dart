@@ -110,7 +110,7 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // 선택된 스피커를 찾아서 리스트의 맨 앞으로 이동시킵니다.
+        // 선택된 스피커를 찾아서 리스트의 맨 앞으로 이동
         List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
         String currentSelection = controller.selectedSpeaker ?? 'None';  // 현재 선택된 스피커를 가져오거나 기본값 설정
         speakers.remove(currentSelection);  // 현재 선택된 스피커를 리스트에서 제거
