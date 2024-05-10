@@ -12,8 +12,10 @@ Future<void> requestMicroPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.microphone,
     ].request();
-    print("micro");
     print(statuses[Permission.microphone]);  // 권한 요청 결과 로그 출력
+  }
+  else{
+    print("microphone is already granted.");
   }
 }
 
@@ -27,7 +29,7 @@ Future<void> requestStoragePermissions() async {
     print(statuses[Permission.storage]);  // 권한 요청 결과 로그 출력
   }
   else{
-    print("storage granted.");
+    print("storage is already granted.");
   }
 }
 

@@ -179,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 
-  void _showRecordingDialog(BuildContext context,SettingEnvironmentController controller) {
+  void _showRecordingDialog(BuildContext context, SettingEnvironmentController controller) {
     bool isRecording = false;
     bool showPlaybackOptions = false;
 
@@ -201,11 +201,35 @@ class _SettingsPageState extends State<SettingsPage> {
                         if (!isRecording)
                           ElevatedButton(
                             onPressed: () {
-                              setState(() {
-                                isRecording = true; // 녹음 시작 상태
-                              });
-                              _soundRecorder.initRecorder();
-                              _soundRecorder.startRecording();
+                              // 경고창을 띄우는 부분
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text("권장 사항:"),
+                                      content: Text("녹음을 하실 때에는 최대한 일정한 톤으로 마이크 거리를 유지하며 녹음해주세요. 기기가 고정된 상태에 있는 것이 가장 좋습니다."),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(); // 경고창 닫기
+                                            setState(() {
+                                              isRecording = true; // 녹음 시작 상태
+                                            });
+                                            _soundRecorder.initRecorder();
+                                            _soundRecorder.startRecording();
+                                          },
+                                          child: Text("계속"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(); // 경고창 닫기
+                                          },
+                                          child: Text("취소"),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                              );
                             },
                             child: const Text("녹음 시작"),
                           )
@@ -215,7 +239,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               setState(() {
                                 isRecording = false; // 녹음 중지 상태
                                 showPlaybackOptions = true; // 재생 옵션 표시
-                                //여기서 녹음 중지해야함.
                                 _soundRecorder.stopRecording();
                                 controller.updateAverageDB(_soundRecorder.getAverageDb());
                               });
@@ -231,7 +254,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            // 실제 녹음 재생 기능을 추가해야 함
                             _soundRecorder.playRecordedFile();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text("녹음된 음성이 재생되었습니다.")),
@@ -242,8 +264,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              showPlaybackOptions = false; // 재생 옵션을 숨김
-                              isRecording = true; // 바로 녹음 시작 상태로 전환
+                              showPlaybackOptions = false;
+                              isRecording = true;
                             });
                             _soundRecorder.startRecording();
                           },
