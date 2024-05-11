@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hci_project/SettingScreen.dart';
 import 'package:hci_project/Script.dart';
+import 'package:hci_project/menuListScreen.dart';
+
 
 
 class HomeScreen extends StatelessWidget {
@@ -25,8 +27,8 @@ class _MyHomePageState extends State<MyHomePage> {
   static List<Widget> _widgetOptions = <Widget>[
     // 각 아이콘에 해당하는 페이지 위젯들을 여기에 추가합니다.
     // 예를 들어, 아이콘 1에 해당하는 페이지 위젯은 _widgetOptions[0]에 추가합니다.
-    Placeholder(), // 재생 페이지로 이동
-    Placeholder(), // 업로드 페이지로 이동
+    Placeholder(), // 재생 페이지로 이동 -- 추가해야함
+    Placeholder(), // 업로드 페이지로 이동 -- 추가해야함
     SettingsPage(), // 세팅 페이지로 이동
   ];
 
@@ -39,12 +41,12 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
+      appBar: PreferredSize( // 상단 바 => 도움말 아이콘 & 메뉴 아이콘
         preferredSize: Size.fromHeight(80),
         child: AppBar(
           leading: IconButton(
             icon: Icon(Icons.help, size:50),
-            onPressed: () { // 도움말 페이지로 이동
+            onPressed: () { // 도움말 페이지로 이동 -- 추가 해야함
               Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
             },
           ),
@@ -52,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
             IconButton(
               icon: Icon(Icons.menu, size: 50),
               onPressed: () { // 메뉴 페이지로 이동
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MenuListScreen()));
               },
             ),
           ],
