@@ -41,7 +41,7 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (_) => SettingEnvironmentController()),
         ],
-        child: const SettingScreen(),// 이곳에 시작할 Screen 입력.(HomeScreen이 되어야함)
+        child: const HomeScreen(),// 이곳에 시작할 Screen 입력.(HomeScreen이 되어야함)
     )
   );
   requestMicroPermissions(); // 앱 시작 시 권한 요청
