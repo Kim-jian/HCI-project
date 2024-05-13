@@ -29,6 +29,7 @@ class SettingEnvironmentController extends ChangeNotifier {
   String get transcriptDisplayOption => _transcriptDisplayOption;
   double get averageDB => _averageDB;
 
+
   Future<void> saveSettings(String key, dynamic value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (value is int) {

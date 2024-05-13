@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:hci_project/script.dart'; // Script.dart 파일을 import합니다.
+import 'package:hci_project/Script.dart';
+import 'package:hci_project/ScriptManager.dart';
+
+ScriptManager _scriptManager = ScriptManager();
+List<Script> scriptList = _scriptManager.getScript;
 
 class MenuListScreen extends StatelessWidget {
+  const MenuListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
