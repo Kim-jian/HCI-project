@@ -3,13 +3,12 @@ import 'package:hci_project/SettingScreen.dart';
 import 'package:hci_project/Script.dart';
 import 'package:hci_project/menuListScreen.dart';
 import 'package:hci_project/ScriptManager.dart';
+import 'package:hci_project/helpScreen.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 ScriptManager _scriptManager = ScriptManager();
 List<Script> scriptList = _scriptManager.getScript;
-import 'package:hci_project/helpScreen.dart';
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -151,17 +150,16 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               IconButton(
-                onPressed: () {}, // 재생 페이지로 이동
-                icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
-                iconSize: 70,
-              ),
-              IconButton(
                 onPressed: () {
                   setState(() {
                     _scriptManager.sortScriptList();
                     // _currentIndex = 0;
                   });
                 }, // 업로드 페이지로 이동
+                icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
+                iconSize: 70,
+              ),
+              IconButton(
                 onPressed: () => _openFilePickerAndMoveFile(context), // 업로드 페이지로 이동
                 icon: Icon(Icons.file_upload_outlined, color: Colors.black),
                 iconSize:70,
