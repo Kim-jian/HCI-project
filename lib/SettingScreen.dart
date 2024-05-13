@@ -161,8 +161,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('최근 수정 일자 순'),
-                value: '최근 수정 일자 순',
+                title: const Text('최근 열람 순'),
+                value: '최근 열람 순',
                 groupValue: controller.selectedSorting,
                 onChanged: (String? value) {
                   if (value != null) {
