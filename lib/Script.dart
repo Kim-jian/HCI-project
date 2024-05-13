@@ -9,23 +9,23 @@ class Script {
 
 List<Script> scriptList = [
   Script(
-    title: '찌안이꼬츄',
+    title: 'example 1',
     content: 'This is the content of script 1.',
   ),
   Script(
-    title: '뱁배개벅벅',
+    title: 'example 2',
     content: 'This is the content of script 2.',
   ),
   Script(
-    title: '아냐포져',
+    title: 'example 3',
     content: 'This is the content of script 3.',
   ),
   Script(
-    title: '계란말이요요',
+    title: 'example 4',
     content: 'This is the content of script 4.',
   ),
   Script(
-    title: '뱁배개먹고싶오요',
+    title: 'example 5',
     content: 'This is the content of script 5.',
   ),
   // Add more scripts as needed
