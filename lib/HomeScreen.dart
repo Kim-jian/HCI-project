@@ -6,6 +6,10 @@ import 'package:hci_project/ScriptManager.dart';
 
 ScriptManager _scriptManager = ScriptManager();
 List<Script> scriptList = _scriptManager.getScript;
+import 'package:hci_project/helpScreen.dart';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,6 +35,43 @@ class _MyHomePageState extends State<MyHomePage> {
   //   _currentIndex = 0;
   // }
 
+  //파일 탐색기 열기
+  Future<void> _openFilePickerAndMoveFile(BuildContext context) async {
+    // 파일 선택 다이얼로그 열기
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    // 파일 선택 결과 확인
+    if (result != null) {
+      // 선택한 파일 정보 출력
+      print('Selected file: ${result.files.first.name}');
+
+      // 선택한 파일의 경로
+      String? selectedFilePath = result.files.first.path;
+
+      // 새로운 파일 경로 (flutter의 lib/text 폴더에 저장)
+      String newPath = '/text/${result.files.first.name}';
+
+      try {
+        // 파일 이동
+        File(selectedFilePath!).copySync(newPath);
+
+        // 파일 이동 성공 시 알림 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('파일을 성공적으로 이동했습니다.'))
+        );
+      } catch (e) {
+        // 파일 이동 실패 시 오류 메시지 출력
+        print('파일 이동 중 오류 발생: $e');
+        // 실패 알림 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('파일 이동 중 오류 발생: $e'))
+        );
+      }
+    } else {
+      print('파일 선택이 취소되었습니다.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
           leading: IconButton(
             icon: Icon(Icons.help, size:50),
             onPressed: () { // 도움말 페이지로 이동 -- 추가 해야함
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => HelpScreen()));
             },
           ),
           actions: <Widget>[
@@ -121,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     // _currentIndex = 0;
                   });
                 }, // 업로드 페이지로 이동
+                onPressed: () => _openFilePickerAndMoveFile(context), // 업로드 페이지로 이동
                 icon: Icon(Icons.file_upload_outlined, color: Colors.black),
                 iconSize:70,
               ),
