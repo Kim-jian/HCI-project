@@ -47,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
           leading: IconButton(
             icon: Icon(Icons.help, size:50),
             onPressed: () { // 도움말 페이지로 이동 -- 추가 해야함
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
+           
             },
           ),
           actions: <Widget>[
