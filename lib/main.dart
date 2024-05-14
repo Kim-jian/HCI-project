@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
-import 'package:hci_project/SettingScreen.dart'; //HomeScreen 구현 완료시 삭제
 import 'HomeScreen.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';

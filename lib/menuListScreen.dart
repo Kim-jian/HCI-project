@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hci_project/Script.dart';
-import 'package:hci_project/ScriptManager.dart';
+import 'package:hci_project/SettingEnvironmentController.dart';
+import 'package:provider/provider.dart';
 
-ScriptManager _scriptManager = ScriptManager();
-List<Script> scriptList = _scriptManager.getScript;
 
 class MenuListScreen extends StatelessWidget {
   const MenuListScreen({super.key});
@@ -17,32 +16,35 @@ class MenuListScreen extends StatelessWidget {
       ),
       body: Container(
         color: Colors.grey[400],
-        child: ListView.builder(
-          itemCount: scriptList.length,
-          itemBuilder: (context, index) {
-            Color backgroundColor = Colors.white;
-            return Container(
-              margin: EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-              decoration: BoxDecoration(
-                color:backgroundColor,
-                borderRadius: BorderRadius.circular(20)
-              ),
-              child: ListTile(
-                title: Text(
-                  scriptList[index].title,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ), // 각 스크립트의 제목을 표시합니다.
-                onTap: () {
-                  // 사용자가 항목을 탭했을 때 실행할 동작을 여기에 추가하세요.
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScriptDetailScreen(script: scriptList[index]),
+        child: Consumer<SettingEnvironmentController>(
+          builder: (context, settings, child) {
+            return ListView.builder(
+              itemCount: settings.getScript.length,
+              itemBuilder: (context, index) {
+                Color backgroundColor = Colors.white;
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      settings.getScript[index].title,
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
-                  );
-                },
-              ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScriptDetailScreen(script: settings.getScript[index]),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             );
           },
         ),
@@ -64,7 +66,25 @@ class ScriptDetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(script.content), // 스크립트의 내용을 표시합니다.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Title: ${script.title}',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Date: ${script.date}',
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Latest Date: ${script.latestdate}',
+              style: TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
       ),
     );
   }
