@@ -4,6 +4,7 @@ import 'package:hci_project/SettingScreen.dart';
 import 'package:hci_project/Script.dart';
 import 'package:hci_project/menuListScreen.dart';
 import 'package:hci_project/helpScreen.dart';
+import 'package:hci_project/SpeechScreen.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
@@ -155,7 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               IconButton(
                 onPressed: () {
-                  setState(() {});
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SpeechScreen()));
                 },
                 icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
                 iconSize: 70,
