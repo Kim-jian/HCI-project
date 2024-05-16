@@ -1,4 +1,3 @@
-// HomeScreen.dart
 import 'package:flutter/material.dart';
 import 'package:hci_project/SettingScreen.dart';
 import 'package:hci_project/Script.dart';
@@ -32,16 +31,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
+  List<String> _uploadedScriptContents = [];
+  String? _selectedScriptContent;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 
   Future<void> _openFilePickerAndMoveFile(BuildContext context) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['txt']);
     if (result != null) {
       String? selectedFilePath = result.files.first.path;
       Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -55,21 +55,31 @@ class _MyHomePageState extends State<MyHomePage> {
 
       try {
         File(selectedFilePath!).copySync(newPath);
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('파일을 성공적으로 이동했습니다.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 성공적으로 이동했습니다.')));
+
+        // TXT 파일 내용을 읽어와 스크립트로 변환
+        String scriptContent = await _extractTextFromTxt(File(newPath));
+
         Script tempScript = Script(
             title: result.files.first.name,
             date: DateTime.now(),
             latestdate: DateTime.now());
-        Provider.of<SettingEnvironmentController>(context, listen: false)
-            .updateScriptList(tempScript);
+
+        Provider.of<SettingEnvironmentController>(context, listen: false).updateScriptList(tempScript);
+
+        setState(() {
+          _uploadedScriptContents.add(scriptContent); // 업로드된 파일의 내용을 리스트에 추가
+        });
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('파일 이동 중 오류 발생: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일 이동 중 오류 발생: $e')));
       }
     } else {
       print('파일 선택이 취소되었습니다.');
     }
+  }
+
+  Future<String> _extractTextFromTxt(File file) async {
+    return await file.readAsString();
   }
 
   @override
@@ -81,16 +91,14 @@ class _MyHomePageState extends State<MyHomePage> {
           leading: IconButton(
             icon: Icon(Icons.help, size: 50),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => HelpScreen()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => HelpScreen()));
             },
           ),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.menu, size: 50),
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => MenuListScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MenuListScreen()));
               },
             ),
           ],
@@ -106,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPageChanged: (index) {
                 setState(() {
                   _currentIndex = index;
+                  _selectedScriptContent = _uploadedScriptContents[index];
                 });
               },
               itemBuilder: (context, index) {
@@ -115,8 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     double value = 0.8;
                     if (_currentIndex == index) {
                       value = 1.0;
-                    } else if (_currentIndex - 1 == index ||
-                        _currentIndex + 1 == index) {
+                    } else if (_currentIndex - 1 == index || _currentIndex + 1 == index) {
                       value = 0.8;
                     } else {
                       value = 0.6;
@@ -156,8 +164,16 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               IconButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SpeechScreen()));
+                  if (_selectedScriptContent != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 먼저 업로드하세요.')));
+                  }
                 },
                 icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
                 iconSize: 70,
@@ -169,13 +185,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               IconButton(
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SettingsPage()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()));
                 },
-                icon: Icon(
-                  Icons.settings,
-                  color: Colors.black,
-                ),
+                icon: Icon(Icons.settings, color: Colors.black),
                 iconSize: 65,
               ),
             ],

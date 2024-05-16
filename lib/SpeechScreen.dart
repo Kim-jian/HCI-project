@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
+import 'package:provider/provider.dart';
 
 class SpeechScreen extends StatefulWidget {
+  final String scriptContent;
+
+  SpeechScreen({required this.scriptContent});
+
   @override
   _SpeechScreenState createState() => _SpeechScreenState();
 }
 
 class _SpeechScreenState extends State<SpeechScreen> {
-  // PageController for navigating between different views
   PageController _pageController = PageController();
 
   @override
@@ -61,7 +64,6 @@ class _SpeechScreenState extends State<SpeechScreen> {
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
         double playbackPosition = (settings.playbackTime / 100) * MediaQuery.of(context).size.width;
-        double averageDbPosition = (settings.averageDB / 100) * MediaQuery.of(context).size.width;
         double endPosition = MediaQuery.of(context).size.width - 24; // End of the progress bar
 
         return SizedBox(
@@ -77,11 +79,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   ],
                 ),
               ),
-              if (settings.getScript.isNotEmpty)
-                Positioned(
-                  left: endPosition,
-                  child: Icon(Icons.flag, color: Colors.black, size: 24), // Flag icon at the end of the script
-                ),
+              Positioned(
+                left: endPosition,
+                child: Icon(Icons.flag, color: Colors.black, size: 24), // Flag icon at the end of the script
+              ),
             ],
           ),
         );
@@ -90,58 +91,21 @@ class _SpeechScreenState extends State<SpeechScreen> {
   }
 
   Widget _buildScriptContent(BuildContext context) {
-    return Consumer<SettingEnvironmentController>(
-      builder: (context, settings, child) {
-        if (settings.getScript.isEmpty) {
-          return Center(
-            child: Text("No scripts available"),
-          );
-        }
-        return PageView(
-          controller: _pageController,
-          children: [
-            // Full script view
-            _buildFullScriptView(context, settings),
-            // Keyword view
-            _buildKeywordView(context, settings),
-          ],
-        );
-      },
+    return PageView(
+      controller: _pageController,
+      children: [
+        _buildFullScriptView(context, widget.scriptContent),
+      ],
     );
   }
 
-  Widget _buildFullScriptView(BuildContext context, SettingEnvironmentController settings) {
+  Widget _buildFullScriptView(BuildContext context, String content) {
     return Container(
       padding: EdgeInsets.all(16),
       color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: settings.getScript.map((script) {
-          return Text(
-            script.title,
-            style: TextStyle(
-              color: settings.getScript.indexOf(script) == (_pageController.page?.round() ?? 0) ? Colors.black : Colors.grey,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildKeywordView(BuildContext context, SettingEnvironmentController settings) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: settings.getScript.map((script) {
-          return Text(
-            script.title.split(' ').first, // Assuming the first word as a keyword for simplicity
-            style: TextStyle(
-              color: settings.getScript.indexOf(script) == (_pageController.page?.round() ?? 0) ? Colors.black : Colors.grey,
-            ),
-          );
-        }).toList(),
+      child: Text(
+        content,
+        style: TextStyle(color: Colors.black),
       ),
     );
   }
@@ -175,7 +139,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
             icon: Icon(Icons.swap_horiz),
             onPressed: () {
               // Toggle between full script and keyword views
-              int nextPage = (_pageController.page?.round() ?? 0) == 0 ? 1 : 0;
+              int nextPage = (_pageController.hasClients && _pageController.page != null ? _pageController.page!.round() : 0) == 0 ? 1 : 0;
               _pageController.jumpToPage(nextPage);
             },
           ),
