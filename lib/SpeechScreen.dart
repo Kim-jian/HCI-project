@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 class SpeechScreen extends StatefulWidget {
   final String scriptContent;
@@ -13,6 +14,58 @@ class SpeechScreen extends StatefulWidget {
 
 class _SpeechScreenState extends State<SpeechScreen> {
   PageController _pageController = PageController();
+  ScrollController _scrollController = ScrollController();
+  List<String> sentences = [];
+  int currentSentenceIndex = 0;
+  Timer? _timer;
+  List<GlobalKey> keys = [];
+
+  @override
+  void initState() {
+    super.initState();
+    sentences = widget.scriptContent.split('. '); // Split the content into sentences
+    keys = List.generate(sentences.length, (index) => GlobalKey());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _startPlayback() {
+    _timer?.cancel(); // Cancel any existing timer
+    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+      setState(() {
+        if (currentSentenceIndex < sentences.length - 1) {
+          currentSentenceIndex++;
+          _scrollToCurrentSentence();
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  void _scrollToCurrentSentence() {
+    final context = keys[currentSentenceIndex].currentContext;
+    if (context != null) {
+      final box = context.findRenderObject() as RenderBox;
+      final position = box.localToGlobal(Offset.zero).dy;
+
+      final scrollPosition = _scrollController.offset +
+          position -
+          (MediaQuery.of(context).size.height / 2) +
+          (box.size.height / 2);
+
+      _scrollController.animateTo(
+        scrollPosition,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,19 +147,29 @@ class _SpeechScreenState extends State<SpeechScreen> {
     return PageView(
       controller: _pageController,
       children: [
-        _buildFullScriptView(context, widget.scriptContent),
+        _buildFullScriptView(context),
       ],
     );
   }
 
-  Widget _buildFullScriptView(BuildContext context, String content) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      color: Colors.white,
-      child: Text(
-        content,
-        style: TextStyle(color: Colors.black),
-      ),
+  Widget _buildFullScriptView(BuildContext context) {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: sentences.length,
+      itemBuilder: (context, index) {
+        return Container(
+          key: keys[index],
+          alignment: Alignment.centerLeft,
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Text(
+            sentences[index],
+            style: TextStyle(
+              color: index == currentSentenceIndex ? Colors.black : Colors.grey,
+              fontSize: 18,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -125,14 +188,16 @@ class _SpeechScreenState extends State<SpeechScreen> {
           ),
           IconButton(
             icon: Icon(Icons.play_arrow),
-            onPressed: () {
-              // Start playing the script
-            },
+            onPressed: _startPlayback,
           ),
           IconButton(
             icon: Icon(Icons.replay),
             onPressed: () {
-              _pageController.jumpToPage(0); // Reset to the beginning of the script
+              _timer?.cancel();
+              setState(() {
+                currentSentenceIndex = 0; // Reset to the beginning of the script
+                _scrollToCurrentSentence();
+              });
             },
           ),
           IconButton(
