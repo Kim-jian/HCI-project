@@ -12,40 +12,91 @@ class SpeechScreen extends StatefulWidget {
   _SpeechScreenState createState() => _SpeechScreenState();
 }
 
-class _SpeechScreenState extends State<SpeechScreen> {
+class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMixin {
   PageController _pageController = PageController();
   ScrollController _scrollController = ScrollController();
   List<String> sentences = [];
   int currentSentenceIndex = 0;
   Timer? _timer;
   List<GlobalKey> keys = [];
+  bool isPlaying = false;
+  late double durationPerSentence;
+  late double totalDuration; // 전체 대본의 총 시간
+  late AnimationController _rabbitController;
+  late AnimationController _triangleController;
 
   @override
   void initState() {
     super.initState();
     sentences = widget.scriptContent.split('. '); // Split the content into sentences
     keys = List.generate(sentences.length, (index) => GlobalKey());
+    durationPerSentence = 2.0; // 각 문장의 지속 시간 (초)
+    totalDuration = sentences.length * durationPerSentence; // 전체 대본의 총 시간 계산
+    _rabbitController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: totalDuration.toInt()),
+    )..addListener(() {
+      setState(() {});
+    });
+    _triangleController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: totalDuration.toInt()),
+    )..addListener(() {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _scrollController.dispose();
+    _rabbitController.dispose();
+    _triangleController.dispose();
     super.dispose();
   }
 
+  void _togglePlayback() {
+    if (isPlaying) {
+      _pausePlayback();
+    } else {
+      _startPlayback();
+    }
+  }
+
   void _startPlayback() {
+    setState(() {
+      isPlaying = true;
+    });
     _timer?.cancel(); // Cancel any existing timer
-    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+    _timer = Timer.periodic(Duration(seconds: durationPerSentence.toInt()), (timer) {
       setState(() {
         if (currentSentenceIndex < sentences.length - 1) {
           currentSentenceIndex++;
           _scrollToCurrentSentence();
+          _updatePlaybackTime();
         } else {
-          timer.cancel();
+          _stopPlayback();
         }
       });
     });
+    _rabbitController.forward();
+    _triangleController.forward(); // 빨간 삼각형도 재생 시작
+  }
+
+  void _pausePlayback() {
+    setState(() {
+      isPlaying = false;
+    });
+    _timer?.cancel();
+    _rabbitController.stop();
+  }
+
+  void _stopPlayback() {
+    setState(() {
+      isPlaying = false;
+    });
+    _timer?.cancel();
+    _rabbitController.stop();
   }
 
   void _scrollToCurrentSentence() {
@@ -65,6 +116,12 @@ class _SpeechScreenState extends State<SpeechScreen> {
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  void _updatePlaybackTime() {
+    final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+    final progress = currentSentenceIndex / (sentences.length - 1);
+    settings.updatePlaybackTime((progress * 100).toInt());
   }
 
   @override
@@ -116,7 +173,6 @@ class _SpeechScreenState extends State<SpeechScreen> {
   Widget _buildProgressBar(BuildContext context) {
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
-        double playbackPosition = (settings.playbackTime / 100) * MediaQuery.of(context).size.width;
         double endPosition = MediaQuery.of(context).size.width - 24; // End of the progress bar
 
         return SizedBox(
@@ -124,13 +180,13 @@ class _SpeechScreenState extends State<SpeechScreen> {
           child: Stack(
             children: [
               Positioned(
-                left: playbackPosition,
-                child: Column(
-                  children: [
-                    Icon(Icons.directions_run, color: Colors.black, size: 24), // Rabbit icon
-                    Icon(Icons.arrow_drop_up, color: Colors.red, size: 24), // Upward arrow icon
-                  ],
-                ),
+                left: _rabbitController.value * endPosition,
+                child: Icon(Icons.directions_run, color: Colors.black, size: 24), // Rabbit icon
+              ),
+              Positioned(
+                left: _triangleController.value * endPosition,
+                bottom: 0, // 사람 아이콘 아래에 배치
+                child: Icon(Icons.arrow_drop_up, color: Colors.red, size: 24), // Upward arrow icon
               ),
               Positioned(
                 left: endPosition,
@@ -187,16 +243,20 @@ class _SpeechScreenState extends State<SpeechScreen> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.play_arrow),
-            onPressed: _startPlayback,
+            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+            onPressed: _togglePlayback,
           ),
           IconButton(
             icon: Icon(Icons.replay),
             onPressed: () {
               _timer?.cancel();
+              _rabbitController.reset();
+              _triangleController.reset(); // 빨간 삼각형도 리셋
               setState(() {
                 currentSentenceIndex = 0; // Reset to the beginning of the script
-                _scrollToCurrentSentence();
+                _scrollController.jumpTo(0); // 바로 처음으로 이동
+                Provider.of<SettingEnvironmentController>(context, listen: false).updatePlaybackTime(0);
+                isPlaying = false;
               });
             },
           ),
