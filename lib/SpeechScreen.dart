@@ -16,10 +16,12 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   PageController _pageController = PageController();
   ScrollController _scrollController = ScrollController();
   List<String> sentences = [];
+  List<String> keywordSentences = [];
   int currentSentenceIndex = 0;
   Timer? _timer;
   List<GlobalKey> keys = [];
   bool isPlaying = false;
+  bool showKeywordsOnly = false; // 대본 모드를 저장하는 변수
   late double durationPerSentence;
   late double totalDuration; // 전체 대본의 총 시간
   late AnimationController _rabbitController;
@@ -28,7 +30,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    sentences = widget.scriptContent.split('. '); // Split the content into sentences
+    // Split the content into sentences, including '. ' and newline characters
+    sentences = widget.scriptContent.split(RegExp(r'(?<=\.)\s+|\n'));
     keys = List.generate(sentences.length, (index) => GlobalKey());
     durationPerSentence = 2.0; // 각 문장의 지속 시간 (초)
     totalDuration = sentences.length * durationPerSentence; // 전체 대본의 총 시간 계산
@@ -44,6 +47,14 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     )..addListener(() {
       setState(() {});
     });
+
+    // 대문자가 포함된 단어만 추출하여 keywordSentences에 저장, 한 글자 대문자는 제외
+    keywordSentences = sentences.map((sentence) {
+      return sentence
+          .split(' ')
+          .where((word) => word.length > 1 && word.contains(RegExp(r'[A-Z]')))
+          .join(' ');
+    }).toList();
   }
 
   @override
@@ -122,6 +133,12 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
     final progress = currentSentenceIndex / (sentences.length - 1);
     settings.updatePlaybackTime((progress * 100).toInt());
+  }
+
+  void _toggleScriptView() {
+    setState(() {
+      showKeywordsOnly = !showKeywordsOnly; // 대본 모드 토글
+    });
   }
 
   @override
@@ -213,15 +230,17 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       controller: _scrollController,
       itemCount: sentences.length,
       itemBuilder: (context, index) {
+        String text = showKeywordsOnly ? keywordSentences[index] : sentences[index];
         return Container(
           key: keys[index],
           alignment: Alignment.centerLeft,
           padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Text(
-            sentences[index],
+            text,
             style: TextStyle(
               color: index == currentSentenceIndex ? Colors.black : Colors.grey,
               fontSize: 18,
+              height: 1.5, // 고정된 줄 간격을 설정하여 텍스트 높이를 일정하게 유지
             ),
           ),
         );
@@ -262,11 +281,7 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
           ),
           IconButton(
             icon: Icon(Icons.swap_horiz),
-            onPressed: () {
-              // Toggle between full script and keyword views
-              int nextPage = (_pageController.hasClients && _pageController.page != null ? _pageController.page!.round() : 0) == 0 ? 1 : 0;
-              _pageController.jumpToPage(nextPage);
-            },
+            onPressed: _toggleScriptView, // 대본 모드 토글 함수 호출
           ),
         ],
       ),
