@@ -28,7 +28,7 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    sentences = widget.scriptContent.split('. '); // Split the content into sentences
+    sentences = widget.scriptContent.split('.'); // Split the content into sentences
     keys = List.generate(sentences.length, (index) => GlobalKey());
     durationPerSentence = 2.0; // 각 문장의 지속 시간 (초)
     totalDuration = sentences.length * durationPerSentence; // 전체 대본의 총 시간 계산
