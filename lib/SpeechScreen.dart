@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import 'package:flutter_sound/flutter_sound.dart'; // Flutter sound for decibel measurement
 
 class SpeechScreen extends StatefulWidget {
   final String scriptContent;
@@ -26,11 +27,12 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   late double totalDuration; // 전체 대본의 총 시간
   late AnimationController _rabbitController;
   late AnimationController _triangleController;
+  double currentDb = 0.0; // 현재 데시벨 값을 저장할 변수
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder(); // Recorder instance for dB measurement
 
   @override
   void initState() {
     super.initState();
-    // Split the content into sentences, including '. ' and newline characters
     sentences = widget.scriptContent.split(RegExp(r'(?<=\.)\s+|\n'));
     keys = List.generate(sentences.length, (index) => GlobalKey());
     durationPerSentence = 2.0; // 각 문장의 지속 시간 (초)
@@ -55,6 +57,9 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
           .where((word) => word.length > 1 && word.contains(RegExp(r'[A-Z]')))
           .join(' ');
     }).toList();
+
+    // Initialize the recorder for decibel measurement
+    _initRecorder();
   }
 
   @override
@@ -63,7 +68,19 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     _scrollController.dispose();
     _rabbitController.dispose();
     _triangleController.dispose();
+    _recorder.closeRecorder(); // Dispose the recorder
     super.dispose();
+  }
+
+  Future<void> _initRecorder() async {
+    await _recorder.openRecorder();
+    _recorder.setSubscriptionDuration(const Duration(milliseconds: 500));
+    _recorder.onProgress!.listen((event) {
+      setState(() {
+        currentDb = event.decibels ?? 0.0; // Update the current dB value
+      });
+    });
+    await _recorder.startRecorder(toFile: 'dummy.wav');
   }
 
   void _togglePlayback() {
@@ -163,24 +180,33 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
         return Container(
-          height: 50,
+          height: 50, // 반절 높이로 설정 + 이격
           color: Colors.grey[300],
-          child: Stack(
-            children: [
-              Container(
-                height: 50,
-                color: Colors.blueAccent,
-                width: (settings.averageDB / 100) * MediaQuery.of(context).size.width, // Scale based on decibels
-              ),
-              Positioned(
-                left: (settings.playbackTime / 100) * MediaQuery.of(context).size.width,
-                child: Container(
-                  height: 50,
-                  width: 2,
-                  color: Colors.black,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 25.0), // 상태 표시줄과 이격
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 0, // 아래쪽 반만 사용
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 500),
+                    height: 25, // 반절 높이로 설정
+                    color: Colors.blueAccent,
+                    width: (currentDb / 100) * MediaQuery.of(context).size.width, // Scale based on current decibels
+                    alignment: Alignment.bottomRight, // 오른쪽 끝에서부터 차오르도록 설정
+                  ),
                 ),
-              ),
-            ],
+                Positioned(
+                  left: (settings.averageDB / 100) * MediaQuery.of(context).size.width,
+                  bottom: 0,
+                  child: Container(
+                    height: 25,
+                    width: 2,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -268,9 +294,9 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
           IconButton(
             icon: Icon(Icons.replay),
             onPressed: () {
-              _timer?.cancel();
               _rabbitController.reset();
-              _triangleController.reset(); // 빨간 삼각형도 리셋
+              _triangleController.reset(); // 빨간 삼각형도 처음으로 이동
+              _timer?.cancel();
               setState(() {
                 currentSentenceIndex = 0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
