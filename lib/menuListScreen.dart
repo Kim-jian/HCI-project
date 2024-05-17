@@ -1,11 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hci_project/Script.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+
+import 'SpeechScreen.dart';
 
 
 class MenuListScreen extends StatelessWidget {
-  const MenuListScreen({super.key});
+  String? _selectedScriptContent;
+
+  Future<String> _extractTextFromTxt(String filePath) async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String appDocPath = appDocDir.path;
+      String newPath = '$appDocPath/$filePath';
+
+      File file = File(newPath);
+      String scriptContent = await file.readAsString();
+      return scriptContent;
+    } catch (e) {
+      print('파일에서 텍스트를 추출하는 중 오류 발생: $e');
+      throw e;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,56 +54,29 @@ class MenuListScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScriptDetailScreen(script: settings.getScript[index]),
-                        ),
-                      );
+                    onTap: () async {
+                      String scriptTitle = settings.getScript[index].title;
+                      String filePath = 'text/$scriptTitle'; // 파일 경로 예시 (실제로는 알맞게 변경해야 함)
+                      try {
+                        String scriptContent = await _extractTextFromTxt(filePath);
+                        _selectedScriptContent = scriptContent;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('파일을 로드하는 도중 오류 발생: $e')),
+                        );
+                      }
                     },
                   ),
                 );
               },
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class ScriptDetailScreen extends StatelessWidget {
-  final Script script;
-
-  ScriptDetailScreen({required this.script});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(script.title),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Title: ${script.title}',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Date: ${script.date}',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Latest Date: ${script.latestdate}',
-              style: TextStyle(fontSize: 18),
-            ),
-          ],
         ),
       ),
     );

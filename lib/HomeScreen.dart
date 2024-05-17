@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,22 +31,22 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
-  List<String> _uploadedScriptContents = [];
-  String? _selectedScriptContent;
 
+  String? _selectedScriptContent;
+  var _settingsT;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {});
+    WidgetsBinding.instance!.addPostFrameCallback((_) {});
   }
 
   Future<void> _openFilePickerAndMoveFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['txt']);
     if (result != null) {
-      String? selectedFilePath = result.files.first.path;
+      String? selectedFilePath = result.files.single.path;
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String appDocPath = appDocDir.path;
-      String newPath = '$appDocPath/text/${result.files.first.name}';
+      String newPath = '$appDocPath/text/${result.files.single.name}';
       Directory newDir = Directory('$appDocPath/text');
 
       if (!newDir.existsSync()) {
@@ -57,19 +57,14 @@ class _MyHomePageState extends State<MyHomePage> {
         File(selectedFilePath!).copySync(newPath);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 성공적으로 이동했습니다.')));
 
-        // TXT 파일 내용을 읽어와 스크립트로 변환
-        String scriptContent = await _extractTextFromTxt(File(newPath));
-
         Script tempScript = Script(
-            title: result.files.first.name,
+            title: result.files.single.name,
             date: DateTime.now(),
             latestdate: DateTime.now());
 
         Provider.of<SettingEnvironmentController>(context, listen: false).updateScriptList(tempScript);
 
-        setState(() {
-          _uploadedScriptContents.add(scriptContent); // 업로드된 파일의 내용을 리스트에 추가
-        });
+
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일 이동 중 오류 발생: $e')));
       }
@@ -78,8 +73,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<String> _extractTextFromTxt(File file) async {
-    return await file.readAsString();
+  Future<String> _extractTextFromTxt(String filePath) async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String appDocPath = appDocDir.path;
+      String newPath = '$appDocPath/$filePath';
+
+      File file = File(newPath);
+      String scriptContent = await file.readAsString();
+      return scriptContent;
+    } catch (e) {
+      print('파일에서 텍스트를 추출하는 중 오류 발생: $e');
+      throw e;
+    }
   }
 
   @override
@@ -106,6 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Consumer<SettingEnvironmentController>(
         builder: (context, settings, child) {
+          _settingsT = settings;
           return Container(
             color: Colors.grey[400],
             child: PageView.builder(
@@ -114,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
               onPageChanged: (index) {
                 setState(() {
                   _currentIndex = index;
-                  _selectedScriptContent = _uploadedScriptContents[index];
                 });
               },
               itemBuilder: (context, index) {
@@ -163,17 +169,23 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               IconButton(
-                onPressed: () {
-                  if (_selectedScriptContent != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 먼저 업로드하세요.')));
-                  }
+                onPressed: () async {
+                    String scriptTitle = _settingsT.getScript[_currentIndex].title;
+                    String filePath = 'text/$scriptTitle'; // 파일 경로
+                    try {
+                      String scriptContent = await _extractTextFromTxt(filePath);
+                      _selectedScriptContent = scriptContent;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('파일을 로드하는 도중 오류 발생: $e')),
+                      );
+                    }
                 },
                 icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
                 iconSize: 70,
