@@ -179,6 +179,27 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   Widget _buildTopBar(BuildContext context) {
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
+        // 데시벨 값을 조정하는 스케일 팩터
+        const scaleFactor = 1; // 적절한 값으로 조정 (0.5는 예시)
+
+        // 스케일을 조정한 currentDb와 averageDB
+        double adjustedCurrentDb = currentDb * scaleFactor;
+        double adjustedAverageDb = settings.averageDB * scaleFactor;
+
+        // 스케일을 조정한 +20dB와 -20dB 지점
+        double adjustedUpperBoundary = (settings.averageDB + 10) * scaleFactor;
+        double adjustedLowerBoundary = (settings.averageDB - 10) * scaleFactor;
+
+        // 색상 결정
+        Color barColor;
+        if (adjustedCurrentDb > adjustedUpperBoundary) {
+          barColor = Colors.red;
+        } else if (adjustedCurrentDb < adjustedLowerBoundary) {
+          barColor = Colors.blue;
+        } else {
+          barColor = Colors.green;
+        }
+
         return Container(
           height: 50, // 반절 높이로 설정 + 이격
           color: Colors.grey[300],
@@ -191,18 +212,39 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 500),
                     height: 25, // 반절 높이로 설정
-                    color: currentDb > settings.averageDB ? Colors.red : Colors.blueAccent, // Conditional color
-                    width: (currentDb / 100) * MediaQuery.of(context).size.width, // Scale based on current decibels
+                    color: barColor, // 조건부 색상
+                    width: (adjustedCurrentDb / 100) * MediaQuery.of(context).size.width, // 조정된 데시벨 값에 따라 너비 조절
                     alignment: Alignment.bottomRight, // 오른쪽 끝에서부터 차오르도록 설정
                   ),
                 ),
+                // AverageDB 경계선
                 Positioned(
-                  left: (settings.averageDB / 100) * MediaQuery.of(context).size.width,
+                  left: (adjustedAverageDb / 100) * MediaQuery.of(context).size.width,
                   bottom: 0,
                   child: Container(
                     height: 25,
                     width: 2,
                     color: Colors.black,
+                  ),
+                ),
+                // +20dB 경계선
+                Positioned(
+                  left: (adjustedUpperBoundary / 100) * MediaQuery.of(context).size.width,
+                  bottom: 0,
+                  child: Container(
+                    height: 25,
+                    width: 2,
+                    color: Colors.red,
+                  ),
+                ),
+                // -20dB 경계선
+                Positioned(
+                  left: (adjustedLowerBoundary / 100) * MediaQuery.of(context).size.width,
+                  bottom: 0,
+                  child: Container(
+                    height: 25,
+                    width: 2,
+                    color: Colors.blue,
                   ),
                 ),
               ],
@@ -212,6 +254,9 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       },
     );
   }
+
+
+
 
   Widget _buildProgressBar(BuildContext context) {
     return Consumer<SettingEnvironmentController>(

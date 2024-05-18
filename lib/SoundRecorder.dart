@@ -34,14 +34,13 @@ class SoundRecorder {
 
   // 평균 데시벨 계산을 위한 동기 함수
   double getAverageDb() {
-    if (_dbValues.isEmpty) {
-      return 0.0;  // 리스트가 비어 있으면 0.0 반환
-    }
-    double totalDb = _dbValues.fold(0.0, (sum, val) => sum + val);
-    double averageDb = totalDb / _dbValues.length;
-    _dbValues.clear(); // 리스트 초기화
-    print("Passed AverageDB : "+averageDb.toString());
-    return averageDb+10;  // 계산된 평균 데시벨 반환
+      if (_dbValues.isEmpty) {
+        return 0.0; // 리스트가 비어 있으면 0.0 반환
+      }
+      double maxDb = _dbValues.reduce((curr, next) => curr > next ? curr : next);
+      _dbValues.clear(); // 리스트 초기화
+      print("Passed MaxDB: " + maxDb.toString());
+      return maxDb; // 최대 데시벨 반환
   }
 
   Future<void> playRecordedFile() async {
