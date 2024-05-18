@@ -95,36 +95,36 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     setState(() {
       isPlaying = true;
     });
-    _timer?.cancel(); // Cancel any existing timer
-    _timer = Timer.periodic(Duration(seconds: durationPerSentence.toInt()), (timer) {
-      setState(() {
-        if (currentSentenceIndex < sentences.length - 1) {
-          currentSentenceIndex++;
-          _scrollToCurrentSentence();
-          _updatePlaybackTime();
-        } else {
-          _stopPlayback();
-        }
-      });
-    });
-    _rabbitController.forward();
-    _triangleController.forward(); // 빨간 삼각형도 재생 시작
+    _triangleController.forward(); // 빨간 삼각형 재생 시작
   }
 
   void _pausePlayback() {
     setState(() {
       isPlaying = false;
     });
-    _timer?.cancel();
     _rabbitController.stop();
   }
 
-  void _stopPlayback() {
+  void _nextSentence() {
     setState(() {
-      isPlaying = false;
+      if (currentSentenceIndex < sentences.length - 1) {
+        currentSentenceIndex++;
+        _scrollToCurrentSentence();
+        _updatePlaybackTime();
+        _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
+      }
     });
-    _timer?.cancel();
-    _rabbitController.stop();
+  }
+
+  void _previousSentence() {
+    setState(() {
+      if (currentSentenceIndex > 0) {
+        currentSentenceIndex--;
+        _scrollToCurrentSentence();
+        _updatePlaybackTime();
+        _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
+      }
+    });
   }
 
   void _scrollToCurrentSentence() {
@@ -161,16 +161,48 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
         children: [
-          // Top bar with decibel indicators
-          _buildTopBar(context),
-          // Rabbit and flag progress bar
-          _buildProgressBar(context),
-          // Main content displaying the script
-          Expanded(child: _buildScriptContent(context)),
-          // Toolbar buttons
-          _buildBottomToolbar(context),
+          Column(
+            children: [
+              // Top bar with decibel indicators
+              _buildTopBar(context),
+              // Rabbit and flag progress bar
+              _buildProgressBar(context),
+              // Main content displaying the script
+              Expanded(child: _buildScriptContent(context)),
+              // Toolbar buttons
+              _buildBottomToolbar(context),
+            ],
+          ),
+          // Transparent button for advancing to the next sentence
+          Positioned(
+            top: 50, // 깃발 아래
+            bottom: 70, // 툴바 위
+            right: 0,
+            width: MediaQuery.of(context).size.width / 4,
+            child: GestureDetector(
+              onTap: _nextSentence,
+              behavior: HitTestBehavior.translucent,
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          // Transparent button for going to the previous sentence
+          Positioned(
+            top: 50, // 깃발 아래
+            bottom: 70, // 툴바 위
+            left: 0,
+            width: MediaQuery.of(context).size.width / 4,
+            child: GestureDetector(
+              onTap: _previousSentence,
+              behavior: HitTestBehavior.translucent,
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -254,9 +286,6 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       },
     );
   }
-
-
-
 
   Widget _buildProgressBar(BuildContext context) {
     return Consumer<SettingEnvironmentController>(
