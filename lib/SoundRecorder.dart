@@ -41,7 +41,7 @@ class SoundRecorder {
     double averageDb = totalDb / _dbValues.length;
     _dbValues.clear(); // 리스트 초기화
     print("Passed AverageDB : "+averageDb.toString());
-    return averageDb;  // 계산된 평균 데시벨 반환
+    return averageDb+10;  // 계산된 평균 데시벨 반환
   }
 
   Future<void> playRecordedFile() async {

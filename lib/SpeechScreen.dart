@@ -191,7 +191,7 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 500),
                     height: 25, // 반절 높이로 설정
-                    color: Colors.blueAccent,
+                    color: currentDb > settings.averageDB ? Colors.red : Colors.blueAccent, // Conditional color
                     width: (currentDb / 100) * MediaQuery.of(context).size.width, // Scale based on current decibels
                     alignment: Alignment.bottomRight, // 오른쪽 끝에서부터 차오르도록 설정
                   ),
