@@ -89,6 +89,11 @@ class SettingEnvironmentController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeScriptFromList(Script script) {
+    _scriptList.remove(script);
+    notifyListeners();
+  }
+
   void updateTranscriptDisplayOption(String newOption) {
     _transcriptDisplayOption = newOption;
     saveSettings("transcriptDisplayOption", newOption);

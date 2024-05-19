@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String? _selectedScriptContent;
   var _settingsT;
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +70,55 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       print('파일 선택이 취소되었습니다.');
     }
+  }
+
+  Future<void> _deleteFileAndRemoveFromList(BuildContext context, Script script) async {
+    try {
+      Directory appDocDir = await getApplicationDocumentsDirectory();
+      String appDocPath = appDocDir.path;
+      String filePath = '$appDocPath/text/${script.title}';
+
+      File fileToDelete = File(filePath);
+
+      if (fileToDelete.existsSync()) {
+        fileToDelete.deleteSync();
+
+        Provider.of<SettingEnvironmentController>(context, listen: false).removeScriptFromList(script);
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 성공적으로 삭제했습니다.')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일을 찾을 수 없습니다.')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일 삭제 중 오류 발생: $e')));
+    }
+  }
+
+  Future<void> _confirmAndDeleteFile(BuildContext context, Script script) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('파일 삭제'),
+          content: Text('정말 이 파일을 삭제하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteFileAndRemoveFromList(context, script);
+              },
+              child: Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<String> _extractTextFromTxt(String filePath) async {
@@ -154,19 +204,33 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Text(
-                          settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                      ),
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _confirmAndDeleteFile(context, settings.getScript[index]);
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
