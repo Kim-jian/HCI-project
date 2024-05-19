@@ -158,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Text(
-                          settings.getScript[index].title,
+                          settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
                           style: TextStyle(
                             color: Colors.black87,
                             fontSize: 24,
