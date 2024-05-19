@@ -18,6 +18,7 @@ class HomeScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => SettingEnvironmentController(),
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,  // 디버그 리본 제거
         home: MyHomePage(),
       ),
     );
@@ -139,106 +140,106 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(70),
-        child: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.help, size: 50),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => HelpScreen()));
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.menu, size: 50),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(70),
+          child: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.help, size: 50),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => MenuListScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HelpScreen()));
               },
             ),
-          ],
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.menu, size: 50),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MenuListScreen()));
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      body: Consumer<SettingEnvironmentController>(
+        body: Consumer<SettingEnvironmentController>(
         builder: (context, settings, child) {
-          _settingsT = settings;
-          return Container(
-            color: Colors.grey[400],
-            child: PageView.builder(
-              itemCount: settings.getScript.length,
-              controller: PageController(viewportFraction: 0.7), // Changed for better visual appeal
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return AnimatedBuilder(
-                  animation: PageController(viewportFraction: 0.7),
-                  builder: (context, child) {
-                    double value = 0.8;
-                    if (_currentIndex == index) {
-                      value = 1.0;
-                    } else if (_currentIndex - 1 == index || _currentIndex + 1 == index) {
-                      value = 0.9;
-                    } else {
-                      value = 0.8;
-                    }
-                    return Center(
-                      child: Transform.scale(
-                        scale: value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    margin: EdgeInsets.fromLTRB(10, 80, 10, 80),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 10,
-                          spreadRadius: 5,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Text(
-                              settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          right: 10,
-                          child: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              _confirmAndDeleteFile(context, settings.getScript[index]);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+      _settingsT = settings;
+      return Container(
+          color: Colors.grey[400],
+          child: PageView.builder(
+          itemCount: settings.getScript.length,
+          controller: PageController(viewportFraction: 0.7), // Changed for better visual appeal
+    onPageChanged: (index) {
+    setState(() {
+    _currentIndex = index;
+    });
+    },
+    itemBuilder: (context, index) {
+    return AnimatedBuilder(
+    animation: PageController(viewportFraction: 0.7),
+    builder: (context, child) {
+    double value = 0.8;
+    if (_currentIndex == index) {
+    value = 1.0;
+    } else if (_currentIndex - 1 == index || _currentIndex + 1 == index) {
+    value = 0.9;
+    } else {
+    value = 0.8;
+    }
+    return Center(
+    child: Transform.scale(
+    scale: value,
+    child: child,
+    ),
+    );
+    },
+    child: Container(
+      margin: EdgeInsets.fromLTRB(10, 80, 10, 80),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            spreadRadius: 5,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                _confirmAndDeleteFile(context, settings.getScript[index]);
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
+    ),
+    );
+    },
+          ),
+      );
+        },
+        ),
       bottomNavigationBar: BottomAppBar(
         height: 110,
         child: Padding(
@@ -287,3 +288,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+

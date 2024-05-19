@@ -1,15 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:hci_project/Script.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'SpeechScreen.dart';
 
+class MenuListScreen extends StatefulWidget {
 
-class MenuListScreen extends StatelessWidget {
+  const MenuListScreen({super.key});
+
+  @override
+  State<MenuListScreen> createState() => _MenuListScreenState();
+}
+
+class _MenuListScreenState extends State<MenuListScreen> {
   String? _selectedScriptContent;
 
   Future<String> _extractTextFromTxt(String filePath) async {
@@ -50,7 +56,7 @@ class MenuListScreen extends StatelessWidget {
                   ),
                   child: ListTile(
                     title: Text(
-                      settings.getScript[index].title,
+                      settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
