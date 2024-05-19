@@ -40,6 +40,30 @@ class SettingEnvironmentController extends ChangeNotifier {
     }
   }
 
+
+  void updateDBtemp(String speaker) {
+    switch (speaker) {
+      case 'Steve Jobs':
+        _averageDB = 70.0;
+        break;
+      case 'Martin Luther King Jr.':
+        _averageDB = 85.0;
+        break;
+      case 'Barack Obama':
+        _averageDB = 75.0;
+        break;
+      case 'Winston Churchill':
+        _averageDB = 80.0;
+        break;
+      case 'None':
+        _averageDB = 0.0;
+        break;
+    }
+    saveSettings("averageDB", _averageDB);
+    notifyListeners();
+  }
+
+
   void updateSelectedSorting(String newValue) {
     _selectedSorting = newValue;
     saveSettings("selectedSorting", newValue);

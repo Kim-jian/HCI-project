@@ -66,4 +66,14 @@ class SoundRecorder {
     _recorder = null;
     _player = null;
   }
+
+  bool isPlaying(){
+    return _player!.isPlaying;
+  }
+
+  void stopPlaying(){
+    if (_player!.isPlaying) {
+      _player!.stopPlayer();
+    }
+  }
 }

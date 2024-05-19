@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:provider/provider.dart';
+import 'SettingEnvironmentController.dart';
 import 'SoundRecorder.dart';
 
 class SettingScreen extends StatelessWidget {
@@ -9,7 +9,7 @@ class SettingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //현재 Setting 환경 변수 값 읽어오기
+    // 현재 Setting 환경 변수 값 읽어오기
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingEnvironmentController()),
@@ -29,17 +29,15 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-
   final SoundRecorder _soundRecorder = SoundRecorder();
-  final List<int> playbackTimeOptions = [1,2, 3, 4, 5,6,7]; // 가능한 재생 시간 목록
+  final List<int> playbackTimeOptions = [1, 2, 3, 4, 5, 6, 7]; // 가능한 재생 시간 목록
   // 사용자가 선택할 수 있는 연설자 목록
   final List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
-
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SettingEnvironmentController>(
-      builder: (context, controller, child){
+      builder: (context, controller, child) {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Settings Example'),
@@ -53,21 +51,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     title: const Text('보이스 톤 설정'),
                     onTap: () {
-                      _showRecordingDialog(context,controller);
+                      _showRecordingDialog(context, controller);
                     },
                   ),
                   ListTile(
                     title: const Text('음성 템플릿 선택'),
                     subtitle: Text('현재 선택: ${controller.selectedSpeaker}'),
                     onTap: () {
-                      _selectSpeakerDialog(context,controller);
+                      _selectSpeakerDialog(context, controller);
                     },
                   ),
                   ListTile(
                     title: const Text('보이스 경고 시간 설정'),
                     subtitle: Text('현재 선택: ${controller.playbackTime} 초'),
                     onTap: () {
-                      showPlaybackTimeSettingDialog(context,controller);
+                      showPlaybackTimeSettingDialog(context, controller);
                     },
                   ),
                 ],
@@ -80,29 +78,29 @@ class _SettingsPageState extends State<SettingsPage> {
                     title: const Text('대본 표시 설정'),
                     subtitle: Text('현재 선택: ${controller.transcriptDisplayOption}'),
                     onTap: () {
-                      _showTranscriptDisplayOptionsDialog(context,controller);
+                      _showTranscriptDisplayOptionsDialog(context, controller);
                     },
                   ),
                   ListTile(
                     title: const Text('정렬 방법 고르기'),
                     subtitle: Text('현재 선택: ${controller.selectedSorting}'), // 현재 선택된 정렬 방법 표시
-                    onTap:(){
-                        _showSortingDialog(context,controller);
-                    }
+                    onTap: () {
+                      _showSortingDialog(context, controller);
+                    },
                   ),
-          ]
+                ],
               ),
               ListTile(
                 title: const Text('구글 계정 연동'),
                 leading: const Icon(Icons.account_circle),
                 onTap: () {
-                  //구글 드라이브 연동 기능 구현
+                  // 구글 드라이브 연동 기능 구현
                 },
               ),
             ],
           ),
         );
-      }
+      },
     );
   }
 
@@ -112,15 +110,15 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         // 선택된 스피커를 찾아서 리스트의 맨 앞으로 이동
         List<String> speakers = ['Steve Jobs', 'Martin Luther King Jr.', 'Barack Obama', 'Winston Churchill', 'None'];
-        String currentSelection = controller.selectedSpeaker ?? 'None';  // 현재 선택된 스피커를 가져오거나 기본값 설정
-        speakers.remove(currentSelection);  // 현재 선택된 스피커를 리스트에서 제거
-        speakers.insert(0, currentSelection);  // 현재 선택된 스피커를 리스트의 맨 앞에 추가
+        String currentSelection = controller.selectedSpeaker;
+        speakers.remove(currentSelection); // 현재 선택된 스피커를 리스트에서 제거
+        speakers.insert(0, currentSelection); // 현재 선택된 스피커를 리스트의 맨 앞에 추가
 
         return AlertDialog(
           title: const Text("음성 템플릿 선택"),
           content: DropdownButton<String>(
             isExpanded: true,
-            value: currentSelection,  // 현재 선택된 값을 value로 설정
+            value: currentSelection, // 현재 선택된 값을 value로 설정
             items: speakers.map((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -129,6 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
             }).toList(),
             onChanged: (String? newValue) {
               if (newValue != null) {
+                controller.updateDBtemp(newValue);
                 controller.updateSelectedSpeaker(newValue);
                 Navigator.of(context).pop();
               }
@@ -138,7 +137,6 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-
 
   void _showSortingDialog(BuildContext context, SettingEnvironmentController controller) {
     showDialog(
@@ -178,7 +176,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-
   void _showRecordingDialog(BuildContext context, SettingEnvironmentController controller) {
     bool isRecording = false;
     bool showPlaybackOptions = false;
@@ -203,32 +200,32 @@ class _SettingsPageState extends State<SettingsPage> {
                             onPressed: () {
                               // 경고창을 띄우는 부분
                               showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text("권장 사항:"),
-                                      content: Text("녹음을 하실 때에는 최대한 일정한 톤으로 마이크 거리를 유지하며 녹음해주세요. 기기가 고정된 상태에 있는 것이 가장 좋습니다."),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // 경고창 닫기
-                                            setState(() {
-                                              isRecording = true; // 녹음 시작 상태
-                                            });
-                                            _soundRecorder.initRecorder();
-                                            _soundRecorder.startRecording();
-                                          },
-                                          child: Text("계속"),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // 경고창 닫기
-                                          },
-                                          child: Text("취소"),
-                                        ),
-                                      ],
-                                    );
-                                  }
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text("권장 사항:"),
+                                    content: Text("녹음을 하실 때에는 최대한 일정한 톤으로 마이크 거리를 유지하며 녹음해주세요. 기기가 고정된 상태에 있는 것이 가장 좋습니다."),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // 경고창 닫기
+                                          setState(() {
+                                            isRecording = true; // 녹음 시작 상태
+                                          });
+                                          _soundRecorder.initRecorder();
+                                          _soundRecorder.startRecording();
+                                        },
+                                        child: Text("계속"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // 경고창 닫기
+                                        },
+                                        child: Text("취소"),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
                             },
                             child: const Text("녹음 시작"),
@@ -240,6 +237,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                 isRecording = false; // 녹음 중지 상태
                                 showPlaybackOptions = true; // 재생 옵션 표시
                                 _soundRecorder.stopRecording();
+                                if(controller.selectedSpeaker!="None"){
+                                  controller.updateSelectedSpeaker("None");
+                                }
                                 controller.updateAverageDB(_soundRecorder.getAverageDb());
                               });
                             },
@@ -279,8 +279,14 @@ class _SettingsPageState extends State<SettingsPage> {
           },
         );
       },
-    );
+    ).then((_) {
+      // 다이얼로그가 닫힐 때 호출되는 부분
+      if (_soundRecorder.isPlaying()) {
+        _soundRecorder.stopPlaying();
+      }
+    });
   }
+
   void showPlaybackTimeSettingDialog(BuildContext context, SettingEnvironmentController controller) {
     final List<int> playbackTimeOptions = [1, 2, 3, 4, 5, 6, 7];
     showDialog(
@@ -313,7 +319,6 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-
 
   void _showTranscriptDisplayOptionsDialog(BuildContext context, SettingEnvironmentController controller) {
     showDialog(
@@ -352,6 +357,4 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
   }
-
 }
-
