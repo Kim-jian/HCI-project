@@ -9,10 +9,10 @@ class SettingEnvironmentController extends ChangeNotifier {
   String _selectedSpeaker = 'None';
   int _playbackTime = 1;
   String _transcriptDisplayOption = '키워드';
-  double _averageDB=0.0;
+  double _averageDB = 0.0;
   List<Script> _scriptList = [];
 
-  SettingEnvironmentController(){
+  SettingEnvironmentController() {
     loadInitialSettings();
   }
 
@@ -40,7 +40,6 @@ class SettingEnvironmentController extends ChangeNotifier {
     }
   }
 
-
   void updateDBtemp(String speaker) {
     switch (speaker) {
       case 'Steve Jobs':
@@ -62,7 +61,6 @@ class SettingEnvironmentController extends ChangeNotifier {
     saveSettings("averageDB", _averageDB);
     notifyListeners();
   }
-
 
   void updateSelectedSorting(String newValue) {
     _selectedSorting = newValue;
@@ -91,6 +89,7 @@ class SettingEnvironmentController extends ChangeNotifier {
 
   void removeScriptFromList(Script script) {
     _scriptList.remove(script);
+    saveScriptList();
     notifyListeners();
   }
 
@@ -139,5 +138,3 @@ class SettingEnvironmentController extends ChangeNotifier {
     }
   }
 }
-
-
