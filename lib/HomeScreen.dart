@@ -37,7 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
   }
 
   Future<void> _openFilePickerAndMoveFile(BuildContext context) async {
@@ -63,8 +63,6 @@ class _MyHomePageState extends State<MyHomePage> {
             latestdate: DateTime.now());
 
         Provider.of<SettingEnvironmentController>(context, listen: false).updateScriptList(tempScript);
-
-
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('파일 이동 중 오류 발생: $e')));
       }
@@ -117,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
             color: Colors.grey[400],
             child: PageView.builder(
               itemCount: settings.getScript.length,
-              controller: PageController(viewportFraction: 0.5),
+              controller: PageController(viewportFraction: 0.7), // Changed for better visual appeal
               onPageChanged: (index) {
                 setState(() {
                   _currentIndex = index;
@@ -125,15 +123,15 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               itemBuilder: (context, index) {
                 return AnimatedBuilder(
-                  animation: PageController(viewportFraction: 0.5),
+                  animation: PageController(viewportFraction: 0.7),
                   builder: (context, child) {
                     double value = 0.8;
                     if (_currentIndex == index) {
                       value = 1.0;
                     } else if (_currentIndex - 1 == index || _currentIndex + 1 == index) {
-                      value = 0.8;
+                      value = 0.9;
                     } else {
-                      value = 0.6;
+                      value = 0.8;
                     }
                     return Center(
                       child: Transform.scale(
@@ -143,15 +141,31 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   },
                   child: Container(
-                    margin: EdgeInsets.fromLTRB(0, 100, 0, 100),
+                    margin: EdgeInsets.fromLTRB(10, 80, 10, 80),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
                       color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          spreadRadius: 5,
+                          offset: Offset(0, 5),
+                        ),
+                      ],
                     ),
                     child: Center(
-                      child: Text(
-                        settings.getScript[index].title,
-                        style: TextStyle(color: Colors.black, fontSize: 24),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Text(
+                          settings.getScript[index].title,
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ),
@@ -170,22 +184,22 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               IconButton(
                 onPressed: () async {
-                    String scriptTitle = _settingsT.getScript[_currentIndex].title;
-                    String filePath = 'text/$scriptTitle'; // 파일 경로
-                    try {
-                      String scriptContent = await _extractTextFromTxt(filePath);
-                      _selectedScriptContent = scriptContent;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
-                        ),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('파일을 로드하는 도중 오류 발생: $e')),
-                      );
-                    }
+                  String scriptTitle = _settingsT.getScript[_currentIndex].title;
+                  String filePath = 'text/$scriptTitle'; // 파일 경로
+                  try {
+                    String scriptContent = await _extractTextFromTxt(filePath);
+                    _selectedScriptContent = scriptContent;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SpeechScreen(scriptContent: _selectedScriptContent!),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('파일을 로드하는 도중 오류 발생: $e')),
+                    );
+                  }
                 },
                 icon: Icon(Icons.play_arrow_rounded, color: Colors.black),
                 iconSize: 70,
