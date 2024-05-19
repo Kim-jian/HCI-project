@@ -63,14 +63,13 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       setState(() {
         showKeywordsOnly = settings.transcriptDisplayOption == '키워드';
         if (showKeywordsOnly) {
-          _generateKeywordSentences();
+          _generateKeywordSentences(settings.keywordSentence);
         }
       });
     });
   }
 
-  void _generateKeywordSentences() {
-    int interval = 8; // 8문장마다 키워드를 표시
+  void _generateKeywordSentences(int interval) {
     keywordSentences = List.generate(sentences.length, (index) {
       if (index % interval == 0) {
         List<String> words = sentences[index].split(' ');
@@ -175,9 +174,10 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
   void _nextSentence() {
     setState(() {
+      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
-        if (currentSentenceIndex < sentences.length - 8) {
-          currentSentenceIndex += 8;
+        if (currentSentenceIndex < sentences.length - settings.keywordSentence) {
+          currentSentenceIndex += settings.keywordSentence;
         } else {
           currentSentenceIndex = sentences.length - 1;
         }
@@ -192,12 +192,12 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     });
   }
 
-
   void _previousSentence() {
     setState(() {
+      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
-        if (currentSentenceIndex > 7) {
-          currentSentenceIndex -= 8;
+        if (currentSentenceIndex > settings.keywordSentence - 1) {
+          currentSentenceIndex -= settings.keywordSentence;
         } else {
           currentSentenceIndex = 0;
         }
@@ -241,7 +241,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     setState(() {
       showKeywordsOnly = !showKeywordsOnly; // 대본 모드 토글
       if (showKeywordsOnly) {
-        _generateKeywordSentences();
+        final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+        _generateKeywordSentences(settings.keywordSentence);
       }
     });
   }

@@ -8,6 +8,7 @@ class SettingEnvironmentController extends ChangeNotifier {
   String _selectedSorting = '업로드 순';
   String _selectedSpeaker = 'None';
   int _playbackTime = 1;
+  int _keywordSentence = 5;
   String _transcriptDisplayOption = '키워드';
   double _averageDB = 0.0;
   List<Script> _scriptList = [];
@@ -22,6 +23,7 @@ class SettingEnvironmentController extends ChangeNotifier {
   int get playbackTime => _playbackTime;
   String get transcriptDisplayOption => _transcriptDisplayOption;
   double get averageDB => _averageDB;
+  int get keywordSentence => _keywordSentence;
 
   Future<void> saveSettings(String key, dynamic value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -59,6 +61,12 @@ class SettingEnvironmentController extends ChangeNotifier {
         break;
     }
     saveSettings("averageDB", _averageDB);
+    notifyListeners();
+  }
+
+  void updateKeywordSentence(int newValue) {
+    _keywordSentence = newValue;
+    saveSettings("keywordSentence", newValue);
     notifyListeners();
   }
 
@@ -118,6 +126,7 @@ class SettingEnvironmentController extends ChangeNotifier {
     _playbackTime = prefs.getInt('playbackTime') ?? _playbackTime;
     _transcriptDisplayOption = prefs.getString('transcriptDisplayOption') ?? _transcriptDisplayOption;
     _averageDB = prefs.getDouble('averageDB') ?? _averageDB;
+    _keywordSentence = prefs.getInt('keywordSentence') ?? _keywordSentence;
     print("Loaded Average DB: $_averageDB");
 
     List<String>? scriptListJson = prefs.getStringList('scriptList');

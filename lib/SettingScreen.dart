@@ -15,7 +15,8 @@ class SettingScreen extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingEnvironmentController()),
       ],
       child: MaterialApp(
-        title: 'Settings Example',
+        debugShowCheckedModeBanner: false,
+        title: 'Settings',
         theme: ThemeData(primarySwatch: Colors.blue),
         home: SettingsPage(),
       ),
@@ -79,6 +80,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: Text('현재 선택: ${controller.transcriptDisplayOption}'),
                     onTap: () {
                       _showTranscriptDisplayOptionsDialog(context, controller);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('키워드 수 설정'),
+                    subtitle: Text('현재 설정: ${controller.keywordSentence} 개'),
+                    onTap: () {
+                      _showKeywordCountDialog(context, controller);
                     },
                   ),
                   ListTile(
@@ -353,6 +361,52 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showKeywordCountDialog(BuildContext context, SettingEnvironmentController controller) {
+    final TextEditingController _textEditingController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("키워드 수 설정"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _textEditingController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: '키워드 수를 입력하세요',
+                  hintText: '30 이하의 숫자 입력',
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                '대본의 총 문장 수를 고려하여 설정하세요.',
+                style: TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                int keywordCount = int.tryParse(_textEditingController.text) ?? 0;
+                if (keywordCount > 0 && keywordCount <= 30) {
+                  controller.updateKeywordSentence(keywordCount);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('유효한 키워드 수를 입력하세요. (1-30)')),
+                  );
+                }
+              },
+              child: const Text("확인"),
+            ),
+          ],
         );
       },
     );
