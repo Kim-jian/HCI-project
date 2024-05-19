@@ -18,25 +18,29 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   ScrollController _scrollController = ScrollController();
   List<String> sentences = [];
   List<String> keywordSentences = [];
+  List<double> sentenceDurations = [];
   int currentSentenceIndex = 0;
   Timer? _timer;
   List<GlobalKey> keys = [];
   bool isPlaying = false;
   bool showKeywordsOnly = false; // 대본 모드를 저장하는 변수
-  late double durationPerSentence;
   late double totalDuration; // 전체 대본의 총 시간
   late AnimationController _rabbitController;
   late AnimationController _triangleController;
   double currentDb = 0.0; // 현재 데시벨 값을 저장할 변수
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder(); // Recorder instance for dB measurement
+  Timer? _dbCheckTimer; // 데시벨 체크 타이머
+  int lowDbDuration = 0; // 낮은 데시벨 유지 시간
+  bool showWarningMessage = false; // 경고 메시지 표시 여부
+  bool showWarningLine = false; // 경고선 표시 여부
 
   @override
   void initState() {
     super.initState();
     sentences = widget.scriptContent.split(RegExp(r'(?<=\.)\s+|\n'));
     keys = List.generate(sentences.length, (index) => GlobalKey());
-    durationPerSentence = 2.0; // 각 문장의 지속 시간 (초)
-    totalDuration = sentences.length * durationPerSentence; // 전체 대본의 총 시간 계산
+    sentenceDurations = sentences.map((sentence) => _calculateSentenceDuration(sentence)).toList();
+    totalDuration = sentenceDurations.reduce((a, b) => a + b); // 전체 대본의 총 시간 계산
     _rabbitController = AnimationController(
       vsync: this,
       duration: Duration(seconds: totalDuration.toInt()),
@@ -50,16 +54,19 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       setState(() {});
     });
 
-    // 대문자가 포함된 단어만 추출하여 keywordSentences에 저장, 한 글자 대문자는 제외
-    keywordSentences = sentences.map((sentence) {
-      return sentence
-          .split(' ')
-          .where((word) => word.length > 1 && word.contains(RegExp(r'[A-Z]')))
-          .join(' ');
-    }).toList();
-
     // Initialize the recorder for decibel measurement
     _initRecorder();
+  }
+
+  double _calculateSentenceDuration(String sentence) {
+    int wordCount = sentence.split(' ').length;
+    if (wordCount <= 10) {
+      return 3.0;
+    } else if (wordCount <= 20) {
+      return 5.0;
+    } else {
+      return 8.0;
+    }
   }
 
   @override
@@ -69,6 +76,7 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     _rabbitController.dispose();
     _triangleController.dispose();
     _recorder.closeRecorder(); // Dispose the recorder
+    _dbCheckTimer?.cancel(); // 데시벨 체크 타이머 해제
     super.dispose();
   }
 
@@ -81,6 +89,44 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       });
     });
     await _recorder.startRecorder(toFile: 'dummy.wav');
+
+    // 데시벨 체크 타이머 시작
+    _startDbCheckTimer();
+  }
+
+  void _startDbCheckTimer() {
+    _dbCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      final adjustedLowerBoundary = settings.averageDB - 20;
+      final warningBoundary = adjustedLowerBoundary - 20;
+      final warningDuration = settings.playbackTime;
+
+      if (currentDb < warningBoundary) {
+        lowDbDuration++;
+        if (lowDbDuration >= warningDuration) {
+          _showWarning();
+          lowDbDuration = 0; // 경고 후 다시 초기화
+        }
+      } else {
+        lowDbDuration = 0; // 데시벨이 다시 높아지면 초기화
+        setState(() {
+          showWarningLine = false; // 경고선 숨기기
+        });
+      }
+    });
+  }
+
+  void _showWarning() {
+    setState(() {
+      showWarningMessage = true; // 경고 메시지 표시
+      showWarningLine = true; // 경고선 표시
+    });
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        showWarningMessage = false; // 경고 메시지 숨기기
+        showWarningLine = false; // 경고선 숨기기
+      });
+    });
   }
 
   void _togglePlayback() {
@@ -203,6 +249,22 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
               ),
             ),
           ),
+          // 경고 메시지 표시
+          if (showWarningMessage)
+            Positioned(
+              bottom: 100,
+              left: MediaQuery.of(context).size.width / 2 - 100,
+              child: Container(
+                width: 200,
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                color: Colors.red,
+                child: Text(
+                  '설정해둔 시간보다 긴 시간동안 발표가 멈췄습니다. 발표를 시작하세요.',
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -212,7 +274,7 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
         // 데시벨 값을 조정하는 스케일 팩터
-        const scaleFactor = 1; // 적절한 값으로 조정 (0.5는 예시)
+        const scaleFactor = 1; // 적절한 값으로 조정
 
         // 스케일을 조정한 currentDb와 averageDB
         double adjustedCurrentDb = currentDb * scaleFactor;
@@ -221,13 +283,14 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
         // 스케일을 조정한 +20dB와 -20dB 지점
         double adjustedUpperBoundary = (settings.averageDB + 10) * scaleFactor;
         double adjustedLowerBoundary = (settings.averageDB - 10) * scaleFactor;
+        double warningBoundary = adjustedLowerBoundary - 20 * scaleFactor;
 
         // 색상 결정
         Color barColor;
         if (adjustedCurrentDb > adjustedUpperBoundary) {
           barColor = Colors.red;
         } else if (adjustedCurrentDb < adjustedLowerBoundary) {
-          barColor = Colors.blue;
+          barColor = Colors.red;
         } else {
           barColor = Colors.green;
         }
@@ -279,6 +342,17 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                     color: Colors.blue,
                   ),
                 ),
+                // 경고선
+                if (showWarningLine)
+                  Positioned(
+                    left: (warningBoundary / 100) * MediaQuery.of(context).size.width,
+                    bottom: 0,
+                    child: Container(
+                      height: 25,
+                      width: 2,
+                      color: Colors.red,
+                    ),
+                  ),
               ],
             ),
           ),
