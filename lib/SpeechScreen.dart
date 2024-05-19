@@ -56,6 +56,28 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
     // Initialize the recorder for decibel measurement
     _initRecorder();
+
+    // Set initial transcript display mode based on the SettingEnvironmentController's value
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      setState(() {
+        showKeywordsOnly = settings.transcriptDisplayOption == '키워드';
+        if (showKeywordsOnly) {
+          _generateKeywordSentences();
+        }
+      });
+    });
+  }
+
+  void _generateKeywordSentences() {
+    int interval = 8; // 8문장마다 키워드를 표시
+    keywordSentences = List.generate(sentences.length, (index) {
+      if (index % interval == 0) {
+        List<String> words = sentences[index].split(' ');
+        return words.length > 1 ? '${words[0]} ${words[1]}' : words[0];
+      }
+      return '';
+    });
   }
 
   double _calculateSentenceDuration(String sentence) {
@@ -153,23 +175,40 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
   void _nextSentence() {
     setState(() {
-      if (currentSentenceIndex < sentences.length - 1) {
-        currentSentenceIndex++;
-        _scrollToCurrentSentence();
-        _updatePlaybackTime();
-        _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
+      if (showKeywordsOnly) {
+        if (currentSentenceIndex < sentences.length - 8) {
+          currentSentenceIndex += 8;
+        } else {
+          currentSentenceIndex = sentences.length - 1;
+        }
+      } else {
+        if (currentSentenceIndex < sentences.length - 1) {
+          currentSentenceIndex++;
+        }
       }
+      _scrollToCurrentSentence();
+      _updatePlaybackTime();
+      _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
     });
   }
 
+
   void _previousSentence() {
     setState(() {
-      if (currentSentenceIndex > 0) {
-        currentSentenceIndex--;
-        _scrollToCurrentSentence();
-        _updatePlaybackTime();
-        _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
+      if (showKeywordsOnly) {
+        if (currentSentenceIndex > 7) {
+          currentSentenceIndex -= 8;
+        } else {
+          currentSentenceIndex = 0;
+        }
+      } else {
+        if (currentSentenceIndex > 0) {
+          currentSentenceIndex--;
+        }
       }
+      _scrollToCurrentSentence();
+      _updatePlaybackTime();
+      _rabbitController.value = currentSentenceIndex / (sentences.length - 1);
     });
   }
 
@@ -201,6 +240,9 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   void _toggleScriptView() {
     setState(() {
       showKeywordsOnly = !showKeywordsOnly; // 대본 모드 토글
+      if (showKeywordsOnly) {
+        _generateKeywordSentences();
+      }
     });
   }
 
@@ -404,6 +446,10 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
       controller: _scrollController,
       itemCount: sentences.length,
       itemBuilder: (context, index) {
+        // 키워드 모드에서 빈칸을 표시하지 않도록 처리
+        if (showKeywordsOnly && keywordSentences[index].isEmpty) {
+          return Container(); // 빈 컨테이너를 반환하여 렌더링하지 않음
+        }
         String text = showKeywordsOnly ? keywordSentences[index] : sentences[index];
         return Container(
           key: keys[index],
