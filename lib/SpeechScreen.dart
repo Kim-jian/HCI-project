@@ -13,7 +13,8 @@ class SpeechScreen extends StatefulWidget {
   _SpeechScreenState createState() => _SpeechScreenState();
 }
 
-class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMixin {
+class _SpeechScreenState extends State<SpeechScreen>
+    with TickerProviderStateMixin {
   PageController _pageController = PageController();
   ScrollController _scrollController = ScrollController();
   List<String> sentences = [];
@@ -28,7 +29,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   late AnimationController _rabbitController;
   late AnimationController _triangleController;
   double currentDb = 0.0; // 현재 데시벨 값을 저장할 변수
-  final FlutterSoundRecorder _recorder = FlutterSoundRecorder(); // Recorder instance for dB measurement
+  final FlutterSoundRecorder _recorder =
+      FlutterSoundRecorder(); // Recorder instance for dB measurement
   Timer? _dbCheckTimer; // 데시벨 체크 타이머
   int lowDbDuration = 0; // 낮은 데시벨 유지 시간
   bool showWarningMessage = false; // 경고 메시지 표시 여부
@@ -39,27 +41,30 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     super.initState();
     sentences = widget.scriptContent.split(RegExp(r'(?<=\.)\s+|\n'));
     keys = List.generate(sentences.length, (index) => GlobalKey());
-    sentenceDurations = sentences.map((sentence) => _calculateSentenceDuration(sentence)).toList();
+    sentenceDurations = sentences
+        .map((sentence) => _calculateSentenceDuration(sentence))
+        .toList();
     totalDuration = sentenceDurations.reduce((a, b) => a + b); // 전체 대본의 총 시간 계산
     _rabbitController = AnimationController(
       vsync: this,
       duration: Duration(seconds: totalDuration.toInt()),
     )..addListener(() {
-      setState(() {});
-    });
+        setState(() {});
+      });
     _triangleController = AnimationController(
       vsync: this,
       duration: Duration(seconds: totalDuration.toInt()),
     )..addListener(() {
-      setState(() {});
-    });
+        setState(() {});
+      });
 
     // Initialize the recorder for decibel measurement
     _initRecorder();
 
     // Set initial transcript display mode based on the SettingEnvironmentController's value
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      final settings =
+          Provider.of<SettingEnvironmentController>(context, listen: false);
       setState(() {
         showKeywordsOnly = settings.transcriptDisplayOption == '키워드';
         if (showKeywordsOnly) {
@@ -117,7 +122,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
   void _startDbCheckTimer() {
     _dbCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      final settings =
+          Provider.of<SettingEnvironmentController>(context, listen: false);
       final adjustedLowerBoundary = settings.averageDB - 20;
       final warningBoundary = adjustedLowerBoundary - 20;
       final warningDuration = settings.playbackTime;
@@ -174,9 +180,11 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
   void _nextSentence() {
     setState(() {
-      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      final settings =
+          Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
-        if (currentSentenceIndex < sentences.length - settings.keywordSentence) {
+        if (currentSentenceIndex <
+            sentences.length - settings.keywordSentence) {
           currentSentenceIndex += settings.keywordSentence;
         } else {
           currentSentenceIndex = sentences.length - 1;
@@ -194,7 +202,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
 
   void _previousSentence() {
     setState(() {
-      final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+      final settings =
+          Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
         if (currentSentenceIndex > settings.keywordSentence - 1) {
           currentSentenceIndex -= settings.keywordSentence;
@@ -232,7 +241,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   }
 
   void _updatePlaybackTime() {
-    final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+    final settings =
+        Provider.of<SettingEnvironmentController>(context, listen: false);
     final progress = currentSentenceIndex / (sentences.length - 1);
     settings.updatePlaybackTime((progress * 100).toInt());
   }
@@ -241,7 +251,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
     setState(() {
       showKeywordsOnly = !showKeywordsOnly; // 대본 모드 토글
       if (showKeywordsOnly) {
-        final settings = Provider.of<SettingEnvironmentController>(context, listen: false);
+        final settings =
+            Provider.of<SettingEnvironmentController>(context, listen: false);
         _generateKeywordSentences(settings.keywordSentence);
       }
     });
@@ -266,8 +277,10 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
           ),
           // Transparent button for advancing to the next sentence
           Positioned(
-            top: 50, // 깃발 아래
-            bottom: 70, // 툴바 위
+            top: 50,
+            // 깃발 아래
+            bottom: 70,
+            // 툴바 위
             right: 0,
             width: MediaQuery.of(context).size.width / 4,
             child: GestureDetector(
@@ -280,8 +293,10 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
           ),
           // Transparent button for going to the previous sentence
           Positioned(
-            top: 50, // 깃발 아래
-            bottom: 70, // 툴바 위
+            top: 50,
+            // 깃발 아래
+            bottom: 70,
+            // 툴바 위
             left: 0,
             width: MediaQuery.of(context).size.width / 4,
             child: GestureDetector(
@@ -349,15 +364,20 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                   bottom: 0, // 아래쪽 반만 사용
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 500),
-                    height: 25, // 반절 높이로 설정
-                    color: barColor, // 조건부 색상
-                    width: (adjustedCurrentDb / 100) * MediaQuery.of(context).size.width, // 조정된 데시벨 값에 따라 너비 조절
+                    height: 25,
+                    // 반절 높이로 설정
+                    color: barColor,
+                    // 조건부 색상
+                    width: (adjustedCurrentDb / 100) *
+                        MediaQuery.of(context).size.width,
+                    // 조정된 데시벨 값에 따라 너비 조절
                     alignment: Alignment.bottomRight, // 오른쪽 끝에서부터 차오르도록 설정
                   ),
                 ),
                 // AverageDB 경계선
                 Positioned(
-                  left: (adjustedAverageDb / 100) * MediaQuery.of(context).size.width,
+                  left: (adjustedAverageDb / 100) *
+                      MediaQuery.of(context).size.width,
                   bottom: 0,
                   child: Container(
                     height: 25,
@@ -367,7 +387,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                 ),
                 // +20dB 경계선
                 Positioned(
-                  left: (adjustedUpperBoundary / 100) * MediaQuery.of(context).size.width,
+                  left: (adjustedUpperBoundary / 100) *
+                      MediaQuery.of(context).size.width,
                   bottom: 0,
                   child: Container(
                     height: 25,
@@ -377,7 +398,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                 ),
                 // -20dB 경계선
                 Positioned(
-                  left: (adjustedLowerBoundary / 100) * MediaQuery.of(context).size.width,
+                  left: (adjustedLowerBoundary / 100) *
+                      MediaQuery.of(context).size.width,
                   bottom: 0,
                   child: Container(
                     height: 25,
@@ -388,7 +410,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
                 // 경고선
                 if (showWarningLine)
                   Positioned(
-                    left: (warningBoundary / 100) * MediaQuery.of(context).size.width,
+                    left: (warningBoundary / 100) *
+                        MediaQuery.of(context).size.width,
                     bottom: 0,
                     child: Container(
                       height: 25,
@@ -407,7 +430,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
   Widget _buildProgressBar(BuildContext context) {
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
-        double endPosition = MediaQuery.of(context).size.width - 24; // End of the progress bar
+        double endPosition =
+            MediaQuery.of(context).size.width - 24; // End of the progress bar
 
         return SizedBox(
           height: 50,
@@ -415,16 +439,20 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
             children: [
               Positioned(
                 left: _rabbitController.value * endPosition,
-                child: Icon(Icons.directions_run, color: Colors.black, size: 24), // Rabbit icon
+                child: Icon(Icons.directions_run,
+                    color: Colors.black, size: 24), // Rabbit icon
               ),
               Positioned(
                 left: _triangleController.value * endPosition,
                 bottom: 0, // 사람 아이콘 아래에 배치
-                child: Icon(Icons.arrow_drop_up, color: Colors.red, size: 24), // Upward arrow icon
+                child: Icon(Icons.arrow_drop_up,
+                    color: Colors.red, size: 24), // Upward arrow icon
               ),
               Positioned(
                 left: endPosition,
-                child: Icon(Icons.flag, color: Colors.black, size: 24), // Flag icon at the end of the script
+                child: Icon(Icons.flag,
+                    color: Colors.black,
+                    size: 24), // Flag icon at the end of the script
               ),
             ],
           ),
@@ -451,7 +479,8 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
         if (showKeywordsOnly && keywordSentences[index].isEmpty) {
           return Container(); // 빈 컨테이너를 반환하여 렌더링하지 않음
         }
-        String text = showKeywordsOnly ? keywordSentences[index] : sentences[index];
+        String text =
+            showKeywordsOnly ? keywordSentences[index] : sentences[index];
         return Container(
           key: keys[index],
           alignment: Alignment.centerLeft,
@@ -493,16 +522,33 @@ class _SpeechScreenState extends State<SpeechScreen> with TickerProviderStateMix
               _triangleController.reset(); // 빨간 삼각형도 처음으로 이동
               _timer?.cancel();
               setState(() {
-                currentSentenceIndex = 0; // Reset to the beginning of the script
+                currentSentenceIndex =
+                    0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
-                Provider.of<SettingEnvironmentController>(context, listen: false).updatePlaybackTime(0);
+                Provider.of<SettingEnvironmentController>(context,
+                        listen: false)
+                    .updatePlaybackTime(0);
                 isPlaying = false;
               });
             },
           ),
           IconButton(
             icon: Icon(Icons.swap_horiz),
-            onPressed: _toggleScriptView, // 대본 모드 토글 함수 호출
+            onPressed: () {
+              _rabbitController.reset();
+              _triangleController.reset(); // 빨간 삼각형도 처음으로 이동
+              _timer?.cancel();
+              setState(() {
+                currentSentenceIndex =
+                    0; // Reset to the beginning of the script
+                _scrollController.jumpTo(0); // 바로 처음으로 이동
+                Provider.of<SettingEnvironmentController>(context,
+                        listen: false)
+                    .updatePlaybackTime(0);
+                isPlaying = false;
+              });
+              _toggleScriptView(); // 대본 모드 토글 함수 호출
+            },
           ),
         ],
       ),
