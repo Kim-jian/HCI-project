@@ -30,7 +30,7 @@ class _SpeechScreenState extends State<SpeechScreen>
   late AnimationController _triangleController;
   double currentDb = 0.0; // 현재 데시벨 값을 저장할 변수
   final FlutterSoundRecorder _recorder =
-      FlutterSoundRecorder(); // Recorder instance for dB measurement
+  FlutterSoundRecorder(); // Recorder instance for dB measurement
   Timer? _dbCheckTimer; // 데시벨 체크 타이머
   int lowDbDuration = 0; // 낮은 데시벨 유지 시간
   bool showWarningMessage = false; // 경고 메시지 표시 여부
@@ -49,14 +49,14 @@ class _SpeechScreenState extends State<SpeechScreen>
       vsync: this,
       duration: Duration(seconds: totalDuration.toInt()),
     )..addListener(() {
-        setState(() {});
-      });
+      setState(() {});
+    });
     _triangleController = AnimationController(
       vsync: this,
       duration: Duration(seconds: totalDuration.toInt()),
     )..addListener(() {
-        setState(() {});
-      });
+      setState(() {});
+    });
 
     // Initialize the recorder for decibel measurement
     _initRecorder();
@@ -64,7 +64,7 @@ class _SpeechScreenState extends State<SpeechScreen>
     // Set initial transcript display mode based on the SettingEnvironmentController's value
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settings =
-          Provider.of<SettingEnvironmentController>(context, listen: false);
+      Provider.of<SettingEnvironmentController>(context, listen: false);
       setState(() {
         showKeywordsOnly = settings.transcriptDisplayOption == '키워드';
         if (showKeywordsOnly) {
@@ -123,7 +123,7 @@ class _SpeechScreenState extends State<SpeechScreen>
   void _startDbCheckTimer() {
     _dbCheckTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       final settings =
-          Provider.of<SettingEnvironmentController>(context, listen: false);
+      Provider.of<SettingEnvironmentController>(context, listen: false);
       final adjustedLowerBoundary = settings.averageDB - 20;
       final warningBoundary = adjustedLowerBoundary - 20;
       final warningDuration = settings.playbackTime;
@@ -175,13 +175,13 @@ class _SpeechScreenState extends State<SpeechScreen>
     setState(() {
       isPlaying = false;
     });
-    _rabbitController.stop();
+    _triangleController.stop(); // 빨간 삼각형 일시정지
   }
 
   void _nextSentence() {
     setState(() {
       final settings =
-          Provider.of<SettingEnvironmentController>(context, listen: false);
+      Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
         if (currentSentenceIndex <
             sentences.length - settings.keywordSentence) {
@@ -203,7 +203,7 @@ class _SpeechScreenState extends State<SpeechScreen>
   void _previousSentence() {
     setState(() {
       final settings =
-          Provider.of<SettingEnvironmentController>(context, listen: false);
+      Provider.of<SettingEnvironmentController>(context, listen: false);
       if (showKeywordsOnly) {
         if (currentSentenceIndex > settings.keywordSentence - 1) {
           currentSentenceIndex -= settings.keywordSentence;
@@ -242,7 +242,7 @@ class _SpeechScreenState extends State<SpeechScreen>
 
   void _updatePlaybackTime() {
     final settings =
-        Provider.of<SettingEnvironmentController>(context, listen: false);
+    Provider.of<SettingEnvironmentController>(context, listen: false);
     final progress = currentSentenceIndex / (sentences.length - 1);
     settings.updatePlaybackTime((progress * 100).toInt());
   }
@@ -252,10 +252,22 @@ class _SpeechScreenState extends State<SpeechScreen>
       showKeywordsOnly = !showKeywordsOnly; // 대본 모드 토글
       if (showKeywordsOnly) {
         final settings =
-            Provider.of<SettingEnvironmentController>(context, listen: false);
+        Provider.of<SettingEnvironmentController>(context, listen: false);
         _generateKeywordSentences(settings.keywordSentence);
       }
     });
+  }
+
+  String _formatDuration(double seconds) {
+    Duration duration = Duration(seconds: seconds.toInt());
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    if (duration.inHours > 0) {
+      return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    } else {
+      return "$twoDigitMinutes:$twoDigitSeconds";
+    }
   }
 
   @override
@@ -431,7 +443,7 @@ class _SpeechScreenState extends State<SpeechScreen>
     return Consumer<SettingEnvironmentController>(
       builder: (context, settings, child) {
         double endPosition =
-            MediaQuery.of(context).size.width - 24; // End of the progress bar
+            MediaQuery.of(context).size.width - 34; // End of the progress bar
 
         return SizedBox(
           height: 50,
@@ -445,14 +457,19 @@ class _SpeechScreenState extends State<SpeechScreen>
               Positioned(
                 left: _triangleController.value * endPosition,
                 bottom: 0, // 사람 아이콘 아래에 배치
-                child: Icon(Icons.arrow_drop_up,
-                    color: Colors.red, size: 24), // Upward arrow icon
+                child: Icon(Icons.arrow_drop_up, color: Colors.red, size: 24), //Upward arrow icon
               ),
               Positioned(
                 left: endPosition,
-                child: Icon(Icons.flag,
-                    color: Colors.black,
-                    size: 24), // Flag icon at the end of the script
+                child: Column(
+                  children: [
+                    Icon(Icons.flag, color: Colors.black, size: 24), //Flag icon at the end of the script
+                    Text(
+                      _formatDuration(totalDuration),
+                      style: TextStyle(color: Colors.black, fontSize: 12),
+                    ),
+                  ],
+                ) // Flag icon at the end of the script
               ),
             ],
           ),
@@ -480,7 +497,7 @@ class _SpeechScreenState extends State<SpeechScreen>
           return Container(); // 빈 컨테이너를 반환하여 렌더링하지 않음
         }
         String text =
-            showKeywordsOnly ? keywordSentences[index] : sentences[index];
+        showKeywordsOnly ? keywordSentences[index] : sentences[index];
         return Container(
           key: keys[index],
           alignment: Alignment.centerLeft,
@@ -523,10 +540,10 @@ class _SpeechScreenState extends State<SpeechScreen>
               _timer?.cancel();
               setState(() {
                 currentSentenceIndex =
-                    0; // Reset to the beginning of the script
+                0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
                 Provider.of<SettingEnvironmentController>(context,
-                        listen: false)
+                    listen: false)
                     .updatePlaybackTime(0);
                 isPlaying = false;
               });
@@ -540,10 +557,10 @@ class _SpeechScreenState extends State<SpeechScreen>
               _timer?.cancel();
               setState(() {
                 currentSentenceIndex =
-                    0; // Reset to the beginning of the script
+                0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
                 Provider.of<SettingEnvironmentController>(context,
-                        listen: false)
+                    listen: false)
                     .updatePlaybackTime(0);
                 isPlaying = false;
               });
