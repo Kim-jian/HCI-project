@@ -12,6 +12,7 @@ class SettingEnvironmentController extends ChangeNotifier {
   String _transcriptDisplayOption = '키워드';
   double _averageDB = 0.0;
   List<Script> _scriptList = [];
+  bool _isDarkMode = false;
 
   SettingEnvironmentController() {
     loadInitialSettings();
@@ -24,6 +25,7 @@ class SettingEnvironmentController extends ChangeNotifier {
   String get transcriptDisplayOption => _transcriptDisplayOption;
   double get averageDB => _averageDB;
   int get keywordSentence => _keywordSentence;
+  bool get isDarkMode => _isDarkMode;
 
   Future<void> saveSettings(String key, dynamic value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -61,6 +63,12 @@ class SettingEnvironmentController extends ChangeNotifier {
         break;
     }
     saveSettings("averageDB", _averageDB);
+    notifyListeners();
+  }
+
+  void updateDarkMode(){
+    _isDarkMode = !_isDarkMode;
+    saveSettings("isDarkMode", _isDarkMode);
     notifyListeners();
   }
 
@@ -127,6 +135,7 @@ class SettingEnvironmentController extends ChangeNotifier {
     _transcriptDisplayOption = prefs.getString('transcriptDisplayOption') ?? _transcriptDisplayOption;
     _averageDB = prefs.getDouble('averageDB') ?? _averageDB;
     _keywordSentence = prefs.getInt('keywordSentence') ?? _keywordSentence;
+    _isDarkMode = prefs.getBool('isDarkMode')??_isDarkMode;
     print("Loaded Average DB: $_averageDB");
 
     List<String>? scriptListJson = prefs.getStringList('scriptList');

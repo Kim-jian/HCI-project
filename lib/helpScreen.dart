@@ -23,7 +23,7 @@ class _HelpScreenState extends State<HelpScreen> {
         ' - 보이스 경고 시간\n'
         '   - 발표중 일정 시간 이상 말을 하지 않을때 경고를 띄울수 있습니다. 해당 시간을 설정할 수 있습니다.\n'
 
-    '\n대본\n'
+        '\n대본\n'
         ' - 대본 표시 모드\n'
         '   - 발표 연습을 할 때 대본과 키워드 중에 선택하여 표시할 수 있습니다.\n'
         ' - 키워드 수 설정\n'
@@ -83,8 +83,8 @@ class _HelpScreenState extends State<HelpScreen> {
               child: SingleChildScrollView(
                 child: RichText(
                   text: TextSpan(
-                    style: TextStyle(color: Colors.black, fontSize: 16.0),
-                    children: _buildHelpContent(selectedHelpContent),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color, fontSize: 16.0),
+                    children: _buildHelpContent(context, selectedHelpContent),
                   ),
                 ),
               ),
@@ -95,7 +95,7 @@ class _HelpScreenState extends State<HelpScreen> {
     );
   }
 
-  List<TextSpan> _buildHelpContent(String content) {
+  List<TextSpan> _buildHelpContent(BuildContext context, String content) {
     List<TextSpan> textSpans = [];
     List<String> lines = content.split('\n');
     for (String line in lines) {
@@ -104,17 +104,17 @@ class _HelpScreenState extends State<HelpScreen> {
       } else if (line.startsWith(' - ')) {
         textSpans.add(TextSpan(
           text: line + '\n',
-          style: TextStyle(fontWeight: FontWeight.normal),
+          style: TextStyle(fontWeight: FontWeight.normal, color: Theme.of(context).textTheme.bodyMedium!.color),
         ));
       } else if (line.startsWith('   - ')) {
         textSpans.add(TextSpan(
           text: line + '\n',
-          style: TextStyle(fontWeight: FontWeight.normal),
+          style: TextStyle(fontWeight: FontWeight.normal, color: Theme.of(context).textTheme.bodyMedium!.color),
         ));
       } else {
         textSpans.add(TextSpan(
           text: line + '\n',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyMedium!.color),
         ));
       }
     }

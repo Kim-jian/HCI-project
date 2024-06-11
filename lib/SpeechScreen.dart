@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hci_project/SettingEnvironmentController.dart';
+import 'SettingEnvironmentController.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:flutter_sound/flutter_sound.dart'; // Flutter sound for decibel measurement
@@ -364,10 +364,10 @@ class _SpeechScreenState extends State<SpeechScreen>
         } else {
           barColor = Colors.green;
         }
-
+        final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
         return Container(
           height: 50, // 반절 높이로 설정 + 이격
-          color: Colors.grey[300],
+          color: isDarkMode ? Colors.grey[850] : Colors.grey[300],
           child: Padding(
             padding: const EdgeInsets.only(top: 25.0), // 상태 표시줄과 이격
             child: Stack(
@@ -452,21 +452,31 @@ class _SpeechScreenState extends State<SpeechScreen>
               Positioned(
                 left: _rabbitController.value * endPosition,
                 child: Icon(Icons.directions_run,
-                    color: Colors.black, size: 24), // Rabbit icon
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black, size: 24), // Rabbit icon
+              ),
+              Positioned(
+                left: 0, // 사람 아이콘의 오른쪽 끝
+                top: 24, // 수평선의 y 위치 조정
+                child: Container(
+                  height: 2,
+                  width: 500,
+                  color: Colors.grey,
+                ),
               ),
               Positioned(
                 left: _triangleController.value * endPosition,
-                bottom: 0, // 사람 아이콘 아래에 배치
+                top: 20, // 사람 아이콘 아래에 배치
                 child: Icon(Icons.arrow_drop_up, color: Colors.red, size: 24), //Upward arrow icon
               ),
               Positioned(
                 left: endPosition,
                 child: Column(
                   children: [
-                    Icon(Icons.flag, color: Colors.black, size: 24), //Flag icon at the end of the script
+                    Icon(Icons.flag,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black, size: 24), // Flag icon
                     Text(
                       _formatDuration(totalDuration),
-                      style: TextStyle(color: Colors.black, fontSize: 12),
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black, fontSize: 12),
                     ),
                   ],
                 ) // Flag icon at the end of the script
@@ -498,70 +508,82 @@ class _SpeechScreenState extends State<SpeechScreen>
         }
         String text =
         showKeywordsOnly ? keywordSentences[index] : sentences[index];
-        return Container(
-          key: keys[index],
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: index == currentSentenceIndex ? Colors.black : Colors.grey,
-              fontSize: 18,
-              height: 1.5, // 고정된 줄 간격을 설정하여 텍스트 높이를 일정하게 유지
+        if(Theme.of(context).brightness == Brightness.dark){
+          return Container(
+            key: keys[index],
+            alignment: Alignment.centerLeft,
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: index == currentSentenceIndex ? Colors.white : Colors.grey,
+                fontSize: 18,
+                height: 1.5, // 고정된 줄 간격을 설정하여 텍스트 높이를 일정하게 유지
+              ),
             ),
-          ),
-        );
+          );
+        }else{
+          return Container(
+            key: keys[index],
+            alignment: Alignment.centerLeft,
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: index == currentSentenceIndex ? Colors.black : Colors.grey,
+                fontSize: 18,
+                height: 1.5, // 고정된 줄 간격을 설정하여 텍스트 높이를 일정하게 유지
+              ),
+            ),
+          );
+        }
       },
     );
   }
 
   Widget _buildBottomToolbar(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 70,
-      color: Colors.grey[300],
+      color: isDarkMode ? Colors.grey[850] : Colors.grey[300],
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home, color: Theme.of(context).iconTheme.color),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
           IconButton(
-            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Theme.of(context).iconTheme.color),
             onPressed: _togglePlayback,
           ),
           IconButton(
-            icon: Icon(Icons.replay),
+            icon: Icon(Icons.replay, color: Theme.of(context).iconTheme.color),
             onPressed: () {
               _rabbitController.reset();
               _triangleController.reset(); // 빨간 삼각형도 처음으로 이동
               _timer?.cancel();
               setState(() {
-                currentSentenceIndex =
-                0; // Reset to the beginning of the script
+                currentSentenceIndex = 0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
-                Provider.of<SettingEnvironmentController>(context,
-                    listen: false)
-                    .updatePlaybackTime(0);
+                Provider.of<SettingEnvironmentController>(context, listen: false).updatePlaybackTime(0);
                 isPlaying = false;
               });
             },
           ),
           IconButton(
-            icon: Icon(Icons.swap_horiz),
+            icon: Icon(Icons.swap_horiz, color: Theme.of(context).iconTheme.color),
             onPressed: () {
               _rabbitController.reset();
               _triangleController.reset(); // 빨간 삼각형도 처음으로 이동
               _timer?.cancel();
               setState(() {
-                currentSentenceIndex =
-                0; // Reset to the beginning of the script
+                currentSentenceIndex = 0; // Reset to the beginning of the script
                 _scrollController.jumpTo(0); // 바로 처음으로 이동
-                Provider.of<SettingEnvironmentController>(context,
-                    listen: false)
-                    .updatePlaybackTime(0);
+                Provider.of<SettingEnvironmentController>(context, listen: false).updatePlaybackTime(0);
                 isPlaying = false;
               });
               _toggleScriptView(); // 대본 모드 토글 함수 호출
@@ -571,4 +593,5 @@ class _SpeechScreenState extends State<SpeechScreen>
       ),
     );
   }
+
 }

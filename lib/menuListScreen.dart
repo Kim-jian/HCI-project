@@ -1,14 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hci_project/SettingEnvironmentController.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-
 import 'SpeechScreen.dart';
 
 class MenuListScreen extends StatefulWidget {
-
   const MenuListScreen({super.key});
 
   @override
@@ -38,26 +35,41 @@ class _MenuListScreenState extends State<MenuListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('대본 목록'),
-        backgroundColor: Colors.grey[400],
       ),
-      body: Container(
-        color: Colors.grey[400],
-        child: Consumer<SettingEnvironmentController>(
-          builder: (context, settings, child) {
-            return ListView.builder(
+      body: Consumer<SettingEnvironmentController>(
+        builder: (context, settings, child) {
+          return Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: ListView.builder(
               itemCount: settings.getScript.length,
               itemBuilder: (context, index) {
-                Color backgroundColor = Colors.white;
+                Color boxColor = Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[800]!
+                    : Colors.white;
+
                 return Container(
                   margin: EdgeInsets.symmetric(vertical: 6, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: backgroundColor,
+                    color: boxColor,
                     borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        spreadRadius: 5,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: ListTile(
                     title: Text(
                       settings.getScript[index].title.replaceAll('.txt', ''), // Remove .txt extension
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.headlineSmall!.color,
+                        letterSpacing: 1.2, // 글자 간격을 살짝 넓혀줍니다.
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     onTap: () async {
@@ -81,9 +93,9 @@ class _MenuListScreenState extends State<MenuListScreen> {
                   ),
                 );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
