@@ -35,10 +35,78 @@ class _SpeechScreenState extends State<SpeechScreen>
   int lowDbDuration = 0; // 낮은 데시벨 유지 시간
   bool showWarningMessage = false; // 경고 메시지 표시 여부
   bool showWarningLine = false; // 경고선 표시 여부
+  int wordsPerMinute=120;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settings = Provider.of<SettingEnvironmentController>(context);
+    updateWordsPerMinute(settings.selectedSpeaker); // Update WPM based on the selected speaker
+    updateDurations(); // Recalculate durations based on the new WPM
+  }
+
+  void updateWordsPerMinute(String selectedSpeaker) {
+    switch (selectedSpeaker) {
+      case "Steve Jobs":
+        wordsPerMinute = 125;
+        break;
+      case "Martin Luther King Jr.":
+        wordsPerMinute = 110;
+        break;
+      case "Barack Obama":
+        wordsPerMinute = 130;
+        break;
+      case "Winston Churchill":
+        wordsPerMinute = 100;
+        break;
+      default:
+        wordsPerMinute = 120;
+        break;
+    }
+  }
+
+  void updateDurations() {
+    sentenceDurations = sentences.map((sentence) => _calculateSentenceDuration(sentence)).toList();
+    totalDuration = sentenceDurations.reduce((a, b) => a + b);
+
+    // Reinitialize animation controllers with new total duration
+    _rabbitController?.dispose();
+    _triangleController?.dispose();
+    _rabbitController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: totalDuration.toInt()),
+    )..addListener(() {
+      setState(() {});
+    });
+
+    _triangleController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: totalDuration.toInt()),
+    )..addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    switch(SettingEnvironmentController().selectedSpeaker){
+      case "Steven Jobs":
+        wordsPerMinute = 125;
+        break;
+      case "Martin Luther King Jr." :
+        wordsPerMinute = 110;
+        break;
+      case "Barack Obama":
+        wordsPerMinute = 130;
+        break;
+      case "Winston Churchill":
+        wordsPerMinute = 100;
+        break;
+      default:
+        wordsPerMinute = 120;
+        break;
+    }
     sentences = widget.scriptContent.split(RegExp(r'(?<=\.)\s+|\n'));
     keys = List.generate(sentences.length, (index) => GlobalKey());
     sentenceDurations = sentences
@@ -86,13 +154,7 @@ class _SpeechScreenState extends State<SpeechScreen>
 
   double _calculateSentenceDuration(String sentence) {
     int wordCount = sentence.split(' ').length;
-    if (wordCount <= 10) {
-      return 3.0;
-    } else if (wordCount <= 20) {
-      return 5.0;
-    } else {
-      return 8.0;
-    }
+    return (wordCount/wordsPerMinute) * 60;
   }
 
   @override
