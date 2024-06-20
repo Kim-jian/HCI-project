@@ -68,23 +68,6 @@ class _SpeechScreenState extends State<SpeechScreen>
   void updateDurations() {
     sentenceDurations = sentences.map((sentence) => _calculateSentenceDuration(sentence)).toList();
     totalDuration = sentenceDurations.reduce((a, b) => a + b);
-
-    // Reinitialize animation controllers with new total duration
-    _rabbitController?.dispose();
-    _triangleController?.dispose();
-    _rabbitController = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: totalDuration.toInt()),
-    )..addListener(() {
-      setState(() {});
-    });
-
-    _triangleController = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: totalDuration.toInt()),
-    )..addListener(() {
-      setState(() {});
-    });
   }
 
   @override
